@@ -1,0 +1,19 @@
+{
+  "name": "hackathon-2025-projeto",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx tsx src/server.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^24.9.1",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "fastify": "^5.6.1"
+  }
+}
