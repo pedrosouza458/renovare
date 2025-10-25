@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client"
+ output   = "./generated/prisma"
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+enum PostType {
+  ALERT
+  CLEANING
+  BOTH
+}
+
+model User {
+  id     String @id @default(uuid())
+  username String @unique
+  email  String @unique
+  password String
+  points Int    @default(0)
+  posts  Post[]
+}
+
+model Pin {
+  id        String   @id @default(uuid())
+  latitude  Float
+  longitude Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  posts     Post[] 
+  lastActionSummary String?
+}
+
+model Post {
+  id        String    @id @default(uuid())
+  type      PostType
+  text      String?
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  pinId     String
+  pin       Pin       @relation(fields: [pinId], references: [id])
+  photos    PostPhoto[]
+  createdAt DateTime  @default(now())
+}
+
+model PostPhoto {
+  id       String @id @default(uuid())
+  url      String
+  postId   String
+  post     Post   @relation(fields: [postId], references: [id])
+  isBefore Boolean?
+}
