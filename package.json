@@ -5,6 +5,7 @@
   "description": "Fullstack waterway monitoring application",
   "type": "module",
   "scripts": {
+    "dev": "concurrently --names \"SERVER,WEB\" --prefix-colors \"blue,green\" \"npm run server\" \"npm run web\"",
     "web": "cd web && npm run dev",
     "server": "cd server && npm run dev",
     "install:all": "npm install && cd web && npm install && cd ../server && npm install",
@@ -13,5 +14,8 @@
   },
   "keywords": ["hackathon", "waterway", "monitoring", "fullstack"],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
 }

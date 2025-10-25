@@ -9,6 +9,12 @@ import { registerJwt } from "./plugins/jwt";
 const app = fastify({ logger: true });
 
 async function main() {
+  // register CORS plugin for frontend communication
+  await app.register(import('@fastify/cors'), {
+    origin: ['http://localhost:5173', 'http://localhost:5174', 'http://127.0.0.1:5173', 'http://127.0.0.1:5174'],
+    credentials: true
+  });
+
   // register jwt plugin first
   await registerJwt(app);
 

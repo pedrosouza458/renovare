@@ -1,12 +1,21 @@
 export type PostType = 'alert' | 'cleaning' | 'both';
 
+export interface PostPhoto {
+  id?: string;
+  url: string;
+  isBefore?: boolean;
+}
+
 export interface Post {
   id: string;
   type: PostType;
-  title: string;
-  description: string;
+  text?: string;
+  reported: boolean;
+  numberOfReports: number;
+  userId: string;
+  pinId: string;
+  photos: PostPhoto[];
   createdAt: string;
-  updatedAt: string;
 }
 
 export interface Pinpoint {
@@ -15,11 +24,26 @@ export interface Pinpoint {
   longitude: number;
   createdAt: string;
   updatedAt: string;
-  posts: Post[];
-  photos: string[]; // Array of photo URLs
+  lastActionSummary?: string;
+  posts?: Post[];
 }
 
 export interface CreatePinpointData {
   latitude: number;
   longitude: number;
+  lastActionSummary?: string;
+}
+
+export interface CreatePostData {
+  type: 'ALERT' | 'CLEANING' | 'BOTH';
+  text?: string;
+  pinId: string;
+  photos?: PostPhoto[];
+}
+
+export interface UpdatePostData {
+  type?: PostType;
+  text?: string;
+  reported?: boolean;
+  numberOfReports?: number;
 }

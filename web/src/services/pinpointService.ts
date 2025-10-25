@@ -1,167 +1,116 @@
-import type { Pinpoint, Post, PostType } from '../types';
+import { pinService } from './pinService';
+import { postService } from './postService';
+import type { Pinpoint, PostType } from '../types';
+import type { CreatePostData } from '../types/pinpoint';
 
-class PinpointService {
-  private readonly STORAGE_KEY = 'waterway_pinpoints';
+// Map frontend PostType to backend PostType
+const mapPostTypeToBackend = (type: PostType): string => {
+  const mapping: Record<PostType, string> = {
+    'alert': 'ALERT',
+    'cleaning': 'CLEANING', 
+    'both': 'BOTH'
+  };
+  return mapping[type];
+};
 
-  /**
-   * Get all pinpoints from localStorage
-   */
-  getAllPinpoints(): Pinpoint[] {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch (error) {
-      console.error('Error loading pinpoints:', error);
-      return [];
-    }
-  }
+// Map backend PostType to frontend PostType  
+const mapPostTypeFromBackend = (type: string): PostType => {
+  const mapping: Record<string, PostType> = {
+    'ALERT': 'alert',
+    'CLEANING': 'cleaning',
+    'BOTH': 'both'
+  };
+  return mapping[type] || 'alert';
+};
 
-  /**
-   * Save pinpoints to localStorage
-   */
-  private savePinpoints(pinpoints: Pinpoint[]): void {
-    try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(pinpoints));
-    } catch (error) {
-      console.error('Error saving pinpoints:', error);
-    }
-  }
+// Types for backend API responses
+interface BackendPost {
+  id: string;
+  type: 'ALERT' | 'CLEANING' | 'BOTH';
+  text?: string;
+  reported: boolean;
+  numberOfReports: number;
+  userId: string;
+  pinId: string;
+  photos: Array<{ id?: string; url: string; isBefore?: boolean }>;
+  createdAt: string;
+}
 
-  /**
-   * Create a new pinpoint
-   * @deprecated Use createPinpointWithPost instead. Pinpoints should not be created without posts.
-   */
-  createPinpoint(): Pinpoint {
-    // Business rule: No empty pinpoints allowed
-    throw new Error('Pinpoints cannot be created without posts. Use createPinpointWithPost instead.');
-  }
+interface BackendPinpoint {
+  id: string;
+  latitude: number;
+  longitude: number;
+  createdAt: string;
+  updatedAt: string;
+  lastActionSummary?: string;
+  posts?: BackendPost[];
+}
 
-  /**
-   * Create a new pinpoint with a required initial post
-   */
-  createPinpointWithPost(
+// Convert backend Pinpoint to frontend Pinpoint
+const mapPinpointFromBackend = (backendPinpoint: BackendPinpoint): Pinpoint => {
+  return {
+    ...backendPinpoint,
+    posts: backendPinpoint.posts?.map((post: BackendPost) => ({
+      ...post,
+      type: mapPostTypeFromBackend(post.type)
+    })) || []
+  };
+};
+
+export const pinpointService = {
+  async getAllPinpoints(): Promise<Pinpoint[]> {
+    const backendPinpoints = await pinService.getAllPins() as BackendPinpoint[];
+    return backendPinpoints.map(mapPinpointFromBackend);
+  },
+
+  async createPinpointWithPost(
     latitude: number, 
     longitude: number, 
     postData: { type: PostType; title: string; description: string }
-  ): Pinpoint {
-    // Business rule: first post cannot be cleaning type
-    if (postData.type === 'cleaning') {
-      throw new Error('The first post in a pinpoint cannot be a cleaning post. Please select Alert or Both.');
-    }
-
-    // Create the initial post
-    const initialPost: Post = {
-      id: this.generateId(),
-      type: postData.type,
-      title: postData.title,
-      description: postData.description,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    // Create the pinpoint with the initial post
-    const newPinpoint: Pinpoint = {
-      id: this.generateId(),
+  ): Promise<Pinpoint> {
+    // First create the pinpoint
+    const newPinpoint = await pinService.createPin({
       latitude,
       longitude,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      posts: [initialPost],
-      photos: []
+      lastActionSummary: postData.title
+    });
+
+    // Then create the post associated with the pinpoint
+    const createPostPayload: CreatePostData = {
+      type: mapPostTypeToBackend(postData.type) as 'ALERT' | 'CLEANING' | 'BOTH',
+      text: postData.description,
+      pinId: newPinpoint.id
     };
 
-    const pinpoints = this.getAllPinpoints();
-    pinpoints.push(newPinpoint);
-    this.savePinpoints(pinpoints);
+    const newPost = await postService.createPost(createPostPayload);
 
-    return newPinpoint;
-  }
+    // Return the pinpoint with the post included
+    return mapPinpointFromBackend({
+      ...(newPinpoint as BackendPinpoint),
+      posts: [newPost as unknown as BackendPost]
+    });
+  },
 
-  /**
-   * Add a post to a pinpoint
-   */
-  addPostToPinpoint(pinpointId: string, postData: { type: PostType; title: string; description: string }): Post | null {
-    const pinpoints = this.getAllPinpoints();
-    const pinpoint = pinpoints.find(p => p.id === pinpointId);
-    
-    if (!pinpoint) return null;
-
-    // Business rule: cleaning posts can only be created if there's already an alert or both post
-    if (postData.type === 'cleaning') {
-      const hasAlertOrBoth = pinpoint.posts.some(post => 
-        post.type === 'alert' || post.type === 'both'
-      );
-      
-      if (!hasAlertOrBoth) {
-        throw new Error('A cleaning post can only be created after there is already an alert or both post in this pinpoint.');
-      }
-    }
-
-    const newPost: Post = {
-      id: this.generateId(),
-      type: postData.type,
-      title: postData.title,
-      description: postData.description,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+  async addPostToPinpoint(
+    pinpointId: string, 
+    postData: { type: PostType; title: string; description: string }
+  ): Promise<Pinpoint> {
+    // Create the post
+    const createPostPayload: CreatePostData = {
+      type: mapPostTypeToBackend(postData.type) as 'ALERT' | 'CLEANING' | 'BOTH',
+      text: postData.description,
+      pinId: pinpointId
     };
 
-    pinpoint.posts.push(newPost);
-    pinpoint.updatedAt = new Date().toISOString();
-    this.savePinpoints(pinpoints);
+    await postService.createPost(createPostPayload);
 
-    return newPost;
-  }
-
-  /**
-   * Delete a pinpoint
-   */
-  deletePinpoint(pinpointId: string): boolean {
-    const pinpoints = this.getAllPinpoints();
-    const filteredPinpoints = pinpoints.filter(p => p.id !== pinpointId);
+    // Get the updated pinpoint
+    const updatedPinpoint = await pinService.getPinById(pinpointId) as BackendPinpoint;
     
-    if (filteredPinpoints.length === pinpoints.length) {
-      return false; // Pinpoint not found
-    }
+    return mapPinpointFromBackend(updatedPinpoint);
+  },
 
-    this.savePinpoints(filteredPinpoints);
-    return true;
+  async deletePinpoint(pinpointId: string): Promise<void> {
+    await pinService.deletePin(pinpointId);
   }
-
-  /**
-   * Update a pinpoint
-   */
-  updatePinpoint(pinpointId: string, updates: Partial<Pinpoint>): Pinpoint | null {
-    const pinpoints = this.getAllPinpoints();
-    const pinpointIndex = pinpoints.findIndex(p => p.id === pinpointId);
-    
-    if (pinpointIndex === -1) return null;
-
-    pinpoints[pinpointIndex] = {
-      ...pinpoints[pinpointIndex],
-      ...updates,
-      id: pinpointId, // Ensure ID doesn't change
-      updatedAt: new Date().toISOString()
-    };
-
-    this.savePinpoints(pinpoints);
-    return pinpoints[pinpointIndex];
-  }
-
-  /**
-   * Get a specific pinpoint by ID
-   */
-  getPinpointById(pinpointId: string): Pinpoint | null {
-    const pinpoints = this.getAllPinpoints();
-    return pinpoints.find(p => p.id === pinpointId) || null;
-  }
-
-  /**
-   * Generate a unique ID
-   */
-  private generateId(): string {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
-  }
-}
-
-export const pinpointService = new PinpointService();
+};

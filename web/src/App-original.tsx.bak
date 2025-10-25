@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import './styles/index.css';
 import GoogleMapSimple from './components/GoogleMapSimple';
-import { LoadingSpinner, ErrorIndicator, BottomSheet, ProfileButton } from './components/ui';
+import { LoadingSpinner, ErrorIndicator, BottomSheet } from './components/ui';
 import { AddPinpointButton } from './components/ui/AddPinpointButton';
 import { CreatePinpointForm } from './components/ui/CreatePinpointForm';
 import { useWaterways } from './hooks/useWaterways';
@@ -98,9 +98,6 @@ function App() {
         onMapClick={handleMapClick}
         isAddingPinpoint={isAddingPinpoint}
       />
-
-      {/* Profile Button - Upper left corner */}
-      <ProfileButton className="profile-button-positioned" />
 
       {/* Loading indicator */}
       {loading && <LoadingSpinner message="Finding waterways..." />}

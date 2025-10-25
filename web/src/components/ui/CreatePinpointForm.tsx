@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useAuth } from '../../hooks/useAuth';
+import { AuthModal } from './AuthModal';
 import type { PostType } from '../../types/pinpoint';
 
 interface CreatePinpointFormProps {
@@ -14,6 +16,8 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
   onSubmit,
   onCancel
 }) => {
+  const { user, isAuthenticated } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [postData, setPostData] = useState({
     type: 'alert' as PostType,
     title: '',
@@ -52,6 +56,43 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
             ✕
           </button>
         </div>
+
+        {/* Authentication encouragement banner */}
+        {!isAuthenticated && (
+          <div className="auth-banner">
+            <div className="auth-banner-content">
+              <div className="auth-banner-icon">⭐</div>
+              <div className="auth-banner-text">
+                <strong>Sign in to earn points!</strong>
+                <span>Get rewarded for your environmental contributions</span>
+              </div>
+              <button 
+                type="button"
+                className="auth-banner-button"
+                onClick={() => setShowAuthModal(true)}
+              >
+                Sign In
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* User attribution for authenticated users */}
+        {isAuthenticated && user && (
+          <div className="user-attribution">
+            <div className="user-attribution-content">
+              <div className="user-attribution-avatar">
+                {user.username?.charAt(0).toUpperCase() || 'U'}
+              </div>
+              <div className="user-attribution-text">
+                <span>Creating as <strong>{user.username}</strong></span>
+                {typeof user.points === 'number' && (
+                  <span className="current-points">⭐ {user.points} points</span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="location-info">
           <p>📍 Location: {latitude.toFixed(6)}, {longitude.toFixed(6)}</p>
@@ -120,6 +161,13 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
           </div>
         </form>
       </div>
+
+      {/* Authentication Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        initialMode="register"
+      />
     </div>
   );
 };
