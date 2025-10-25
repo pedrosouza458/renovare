@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { postResponseSchema } from "../posts/posts.schemas";
 
 export const pinResponseSchema = z.object({
   // accept string-like ids and coerce non-strings to string
@@ -15,6 +16,8 @@ export const pinResponseSchema = z.object({
     z.string()
   ),
   lastActionSummary: z.string().nullable().optional(),
+  // include posts associated with this pin (optional)
+  posts: z.array(postResponseSchema).optional(),
 });
 
 export type PinResponse = z.infer<typeof pinResponseSchema>;

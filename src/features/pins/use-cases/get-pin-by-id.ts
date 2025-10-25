@@ -1,15 +1,17 @@
 import { PrismaClient } from "@prisma/client";
 
 export async function getPinById(prisma: PrismaClient, id: string) {
-  return prisma.pins.findUnique({
+  const pin = await prisma.pins.findUnique({
     where: { id },
-    select: {
-      id: true,
-      latitude: true,
-      longitude: true,
-      createdAt: true,
-      updatedAt: true,
-      lastActionSummary: true,
-    },
+    include: { posts: { include: { photos: true } } },
   });
+
+  if (!pin) return null;
+
+  // Ensure posts[].photos is always an array (Prisma should return [] when none, but be defensive)
+  if (pin.posts) {
+    pin.posts = pin.posts.map((p) => ({ ...p, photos: p.photos ?? [] }));
+  }
+
+  return pin;
 }

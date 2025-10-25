@@ -3,6 +3,7 @@ import fastify from "fastify";
 import { userRoutes } from "./features/users/users.routes";
 import { authRoutes } from "./features/auth/auth.routes";
 import { pinRoutes } from "./features/pins/pins.routes";
+import { postRoutes } from "./features/posts/posts.routes";
 import { registerJwt } from "./plugins/jwt";
 
 const app = fastify({ logger: true });
@@ -19,6 +20,9 @@ async function main() {
 
   // register pin routes under /pins
   app.register(pinRoutes, { prefix: "/pins" });
+
+  // register post routes under /posts
+  app.register(postRoutes, { prefix: "/posts" });
 
   // expose a simple routes dump for debugging
   app.get("/_routes", async () => {

@@ -61,7 +61,7 @@ GET http://localhost:3000/pins
 Accept: application/json
 
 ### Get pin by id (replace {{pinId}} with a real id)
-GET http://localhost:3000/pins/34433c78-efa3-4c71-a007-21bdade28aea
+GET http://localhost:3000/pins/c70df4a4-81d4-4897-8bbb-66336c370467
 Accept: application/json
 
 ### Create a pin
@@ -79,3 +79,46 @@ Accept: application/json
 ### Delete a pin (replace {{pinId}})
 DELETE http://localhost:3000/pins/34433c78-efa3-4c71-a007-21bdade28aea 
 Accept: application/json
+
+### Posts - examples
+
+### List posts
+GET http://localhost:3000/posts
+Accept: application/json
+
+### Get post by id
+GET http://localhost:3000/posts/6e316c67-f02b-4135-985b-48b4d4dd198c
+Accept: application/json
+
+### Create a post (protected) — include photo URLs inline
+POST http://localhost:3000/posts
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiM2Y5OTA1Ny1mZTA2LTQ5NGQtYTQwNi02ODdkNDJiMzU1ZDciLCJpYXQiOjE3NjEzNjg2MDJ9.GZBHHit-Mjo_d7rKDhpTpHjffAuCZB3P1syGjWW1Iso
+Content-Type: application/json
+Accept: application/json
+
+{
+  "type": "BOTH",
+  "text": "There is trash near the park",
+  "pinId": "c70df4a4-81d4-4897-8bbb-66336c370467",
+  "photos": [
+    { "url": "https://example.com/img1.jpg", "isBefore": true },
+    { "url": "https://example.com/img2.jpg", "isBefore": false }
+  ]
+}
+
+### Update a post (protected)
+PATCH http://localhost:3000/posts/{{postId}}
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiM2Y5OTA1Ny1mZTA2LTQ5NGQtYTQwNi02ODdkNDJiMzU1ZDciLCJpYXQiOjE3NjEzNjg2MDJ9.GZBHHit-Mjo_d7rKDhpTpHjffAuCZB3P1syGjWW1Iso
+Content-Type: application/json
+Accept: application/json
+
+{
+  "text": "Updated description",
+  "type": "CLEANING"
+}
+
+### Delete a post (protected)
+DELETE http://localhost:3000/posts/{{postId}}
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiM2Y5OTA1Ny1mZTA2LTQ5NGQtYTQwNi02ODdkNDJiMzU1ZDciLCJpYXQiOjE3NjEzNjg2MDJ9.GZBHHit-Mjo_d7rKDhpTpHjffAuCZB3P1syGjWW1Iso
+Accept: application/json
+
