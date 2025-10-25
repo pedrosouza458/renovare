@@ -4,6 +4,7 @@ import type {
   Location, 
   GoogleMapInstance, 
   GoogleMarkerInstance, 
+  GooglePolylineInstance,
   GoogleMapMouseEvent 
 } from '../types';
 import { GOOGLE_MAPS_CONFIG, DEFAULT_LOCATION, DEFAULT_ZOOM } from '../constants';
@@ -22,6 +23,7 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<GoogleMapInstance | null>(null);
   const markersRef = useRef<GoogleMarkerInstance[]>([]);
+  const polylinesRef = useRef<GooglePolylineInstance[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
 
@@ -181,28 +183,14 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
     }
   }, [currentLocation]);
 
-  // Function to create custom waterway marker icons
-  const createWaterwayIcon = (type: string) => {
-    const color = type === 'river' ? '#1a73e8' : type === 'stream' ? '#34a853' : '#ea4335';
-    const emoji = type === 'river' ? '🏞' : type === 'stream' ? '💧' : '🌊';
-    
-    return {
-      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg width="32" height="40" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-              <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
-            </filter>
-          </defs>
-          <path d="M16 2C8.27 2 2 8.27 2 16c0 7.5 14 22 14 22s14-14.5 14-22C30 8.27 23.73 2 16 2z" 
-                fill="${color}" filter="url(#shadow)"/>
-          <circle cx="16" cy="16" r="10" fill="white"/>
-          <text x="16" y="22" text-anchor="middle" font-size="14" fill="${color}">${emoji}</text>
-        </svg>
-      `)}`,
-      scaledSize: new window.google!.maps.Size(26, 32),
-      anchor: new window.google!.maps.Point(13, 32)
-    };
+  // Function to get waterway line color based on type
+  const getWaterwayColor = (type: string): string => {
+    switch (type) {
+      case 'river': return '#FF0000'; // Red for rivers
+      case 'stream': return '#00FF00'; // Green for streams  
+      case 'canal': return '#0000FF'; // Blue for canals
+      default: return '#0000FF'; // Default blue
+    }
   };
 
   // Update markers when location or waterways change
@@ -211,7 +199,7 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
       return;
     }
 
-    // Clear existing markers safely
+    // Clear existing markers and polylines safely
     markersRef.current.forEach(marker => {
       try {
         marker.setMap(null);
@@ -220,6 +208,15 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
       }
     });
     markersRef.current = [];
+
+    polylinesRef.current.forEach(polyline => {
+      try {
+        polyline.setMap(null);
+      } catch {
+        // Ignore errors when removing polylines
+      }
+    });
+    polylinesRef.current = [];
 
     // Add current location marker (red pin)
     if (currentLocation && window.google?.maps && mapInstanceRef.current) {
@@ -233,31 +230,49 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
       markersRef.current.push(currentLocationMarker);
     }
 
-    // Add waterway markers
+    // Add waterway polylines (lines showing the flow of rivers/streams)
     if (waterways && waterways.length > 0 && window.google?.maps && mapInstanceRef.current) {
       waterways.forEach(waterway => {
-        if (waterway.coordinates && waterway.coordinates.length > 0 && window.google?.maps && mapInstanceRef.current) {
-          // Use the first coordinate as the marker position
-          const position = waterway.coordinates[0];
-          
-          const waterwayMarker = new window.google.maps.Marker({
-            position: position,
-            map: mapInstanceRef.current!,
-            title: waterway.name,
-            icon: createWaterwayIcon(waterway.type),
-            zIndex: 100 // Lower than current location
+        if (waterway.coordinates && waterway.coordinates.length > 1 && window.google?.maps && mapInstanceRef.current) {
+          // Create a polyline to show the waterway path
+          const waterwayPath = waterway.coordinates.map(coord => ({
+            lat: coord.lat,
+            lng: coord.lng
+          }));
+
+          const waterwayPolyline = new window.google.maps.Polyline({
+            path: waterwayPath,
+            geodesic: true,
+            strokeColor: getWaterwayColor(waterway.type),
+            strokeOpacity: 0.8,
+            strokeWeight: waterway.type === 'river' ? 3 : 2, // Rivers are thicker
+            map: mapInstanceRef.current,
+            clickable: true
           });
 
-          markersRef.current.push(waterwayMarker);
+          // Add click event to show waterway info
+          waterwayPolyline.addListener('click', () => {
+            // You can add an info window here if needed
+            console.log(`Clicked on ${waterway.name} (${waterway.type})`);
+          });
+
+          polylinesRef.current.push(waterwayPolyline);
         }
       });
     }
 
-    // Cleanup function for markers
+    // Cleanup function for markers and polylines
     return () => {
       markersRef.current.forEach(marker => {
         try {
           marker.setMap(null);
+        } catch {
+          // Ignore cleanup errors
+        }
+      });
+      polylinesRef.current.forEach(polyline => {
+        try {
+          polyline.setMap(null);
         } catch {
           // Ignore cleanup errors
         }
