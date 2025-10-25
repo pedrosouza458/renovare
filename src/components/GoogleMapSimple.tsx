@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import type { WaterwayData } from '../types/waterway';
 import type { Pinpoint } from '../types/pinpoint';
 import { GOOGLE_MAPS_CONFIG } from '../constants/api';
@@ -24,9 +24,10 @@ const containerStyle = {
 
 declare global {
   interface Window {
-    googleMapInstance?: unknown;
-    initMap?: () => void;
     google?: unknown;
+    initMap?: () => void;
+    googleMapsLoaded?: boolean;
+    googleMapsScriptLoading?: boolean;
   }
 }
 
@@ -42,62 +43,72 @@ const GoogleMapSimple: React.FC<GoogleMapSimpleProps> = ({
   isAddingPinpoint,
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<unknown>(null);
+  const clickListenerRef = useRef<unknown>(null);
 
-  useEffect(() => {
-    // Define the global initMap function
-    window.initMap = () => {
-      if (!mapRef.current) {
-        console.error('Map container not found');
-        return;
-      }
-      
-      if (!window.google || !(window.google as { maps?: unknown }).maps) {
-        console.error('Google Maps API not loaded');
-        return;
-      }
+  const initializeMap = useCallback(() => {
+    if (!mapRef.current || !window.google) return;
 
-      try {
+    try {
+      if (!mapInstanceRef.current) {
         const googleMaps = window.google as { maps: { 
           Map: new (element: HTMLElement, options: unknown) => unknown;
-          Polyline: new (options: unknown) => { addListener: (event: string, callback: () => void) => void };
-          Marker: new (options: unknown) => { addListener: (event: string, callback: () => void) => void };
-          SymbolPath: { CIRCLE: unknown };
         }};
 
         const map = new googleMaps.maps.Map(mapRef.current, {
-          zoom: 12,
+          zoom: 16,
           center: { lat: center.lat, lng: center.lng },
-          mapTypeId: 'terrain',
-          styles: [
-            {
-              featureType: 'water',
-              elementType: 'geometry',
-              stylers: [{ color: '#a2daf2' }]
-            }
-          ]
+          mapTypeId: 'roadmap',
+          disableDefaultUI: true,
+          mapId: 'DEMO_MAP_ID',
         });
 
-      // Add waterway polylines
+        mapInstanceRef.current = map;
+      }
+
+      const map = mapInstanceRef.current;
+      const googleMaps = window.google as { maps: { 
+        Polyline: new (options: unknown) => { addListener: (event: string, callback: () => void) => void };
+        marker?: {
+          AdvancedMarkerElement: new (options: unknown) => { addListener: (event: string, callback: () => void) => void };
+          PinElement: new (options: unknown) => unknown;
+        };
+        event: { removeListener: (listener: unknown) => void };
+      }};
+      
+      // Handle click listener
+      if (clickListenerRef.current) {
+        googleMaps.maps.event.removeListener(clickListenerRef.current);
+      }
+
+      const mapWithListener = map as { addListener: (event: string, callback: (event: { latLng: { lat: () => number; lng: () => number } }) => void) => unknown };
+      clickListenerRef.current = mapWithListener.addListener('click', (event: { latLng: { lat: () => number; lng: () => number } }) => {
+        if (event.latLng) {
+          const lat = event.latLng.lat();
+          const lng = event.latLng.lng();
+          onMapClick(lat, lng);
+        }
+      });
+
+      // Render waterways
       waterways.forEach(waterway => {
         const path = waterway.coordinates.map(coord => ({ lat: coord.lat, lng: coord.lng }));
         const color = waterway.type === 'river' ? '#ff0000' : 
                     waterway.type === 'stream' ? '#00ff00' : '#0000ff';
         
         const polyline = new googleMaps.maps.Polyline({
-          path: path,
+          path,
           geodesic: true,
           strokeColor: color,
           strokeOpacity: 0.8,
           strokeWeight: 3,
-          map: map
+          map,
         });
 
-        polyline.addListener('click', () => {
-          onWaterwayClick(waterway);
-        });
+        polyline.addListener('click', () => onWaterwayClick(waterway));
       });
 
-      // Add pinpoint markers
+      // Render pinpoints
       pinpoints.forEach(pinpoint => {
         const hasAlert = pinpoint.posts?.some(post => post.type === 'alert' || post.type === 'both');
         const hasCleaning = pinpoint.posts?.some(post => post.type === 'cleaning' || post.type === 'both');
@@ -107,60 +118,109 @@ const GoogleMapSimple: React.FC<GoogleMapSimpleProps> = ({
         else if (hasAlert) color = '#ff0000';
         else if (hasCleaning) color = '#00ff00';
 
-        const marker = new googleMaps.maps.Marker({
-          position: { lat: pinpoint.latitude, lng: pinpoint.longitude },
-          map: map,
-          icon: {
-            path: googleMaps.maps.SymbolPath.CIRCLE,
-            scale: 8,
-            fillColor: color,
-            fillOpacity: 0.8,
-            strokeWeight: 2,
-            strokeColor: '#ffffff'
-          },
-          title: `Pinpoint: ${pinpoint.posts?.length || 0} posts`
-        });
+        if (googleMaps.maps.marker?.AdvancedMarkerElement && googleMaps.maps.marker?.PinElement) {
+          const pinElement = new googleMaps.maps.marker.PinElement({
+            background: color,
+            borderColor: '#ffffff',
+            glyphColor: '#ffffff',
+            scale: 1.2,
+          });
 
-        marker.addListener('click', () => {
-          onPinpointClick(pinpoint);
-        });
+          const marker = new googleMaps.maps.marker.AdvancedMarkerElement({
+            position: { lat: pinpoint.latitude, lng: pinpoint.longitude },
+            map,
+            content: pinElement,
+            title: `Pinpoint: ${pinpoint.posts?.length || 0} posts`
+          });
+
+          marker.addListener('click', () => onPinpointClick(pinpoint));
+        }
       });
 
-      // Add map click listener for adding pinpoints
-      (map as { addListener: (event: string, callback: (event: { latLng: { lat: () => number; lng: () => number } }) => void) => void })
-        .addListener('click', (event: { latLng: { lat: () => number; lng: () => number } }) => {
-        if (isAddingPinpoint && event.latLng) {
+      // Current location marker
+      if (googleMaps.maps.marker?.AdvancedMarkerElement && googleMaps.maps.marker?.PinElement) {
+        const bluePinElement = new googleMaps.maps.marker.PinElement({
+          background: '#4285f4',
+          borderColor: '#ffffff',
+          glyphColor: '#ffffff',
+          scale: 1.0,
+        });
+
+        new googleMaps.maps.marker.AdvancedMarkerElement({
+          position: { lat: center.lat, lng: center.lng },
+          map,
+          content: bluePinElement,
+          title: 'Current Location'
+        });
+      }
+
+    } catch (error) {
+      console.error('Error initializing Google Maps:', error);
+    }
+  }, [center, waterways, pinpoints, onWaterwayClick, onPinpointClick, onMapClick]);
+
+  // Reset map when center changes
+  useEffect(() => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current = null;
+    }
+  }, [center.lat, center.lng]);
+
+  // Update click listener when adding pinpoint state changes
+  useEffect(() => {
+    if (mapInstanceRef.current && window.google) {
+      const googleMaps = window.google as { maps: { event: { removeListener: (listener: unknown) => void } } };
+      
+      if (clickListenerRef.current) {
+        googleMaps.maps.event.removeListener(clickListenerRef.current);
+      }
+
+      const mapWithListener = mapInstanceRef.current as { addListener: (event: string, callback: (event: { latLng: { lat: () => number; lng: () => number } }) => void) => unknown };
+      clickListenerRef.current = mapWithListener.addListener('click', (event: { latLng: { lat: () => number; lng: () => number } }) => {
+        if (event.latLng) {
           const lat = event.latLng.lat();
           const lng = event.latLng.lng();
           onMapClick(lat, lng);
         }
       });
+    }
+  }, [isAddingPinpoint, onMapClick]);
 
-      window.googleMapInstance = map;
-      } catch (error) {
-        console.error('Error initializing Google Maps:', error);
-      }
+  // Initialize map
+  useEffect(() => {
+    if (window.google) {
+      initializeMap();
+      return;
+    }
+
+    window.initMap = () => {
+      initializeMap();
     };
 
-    // Load Google Maps script if not already loaded
-    if (!window.google) {
+    if (!window.googleMapsScriptLoading && !document.querySelector('script[src*="maps.googleapis.com"]')) {
+      window.googleMapsScriptLoading = true;
       const script = document.createElement('script');
-      script.src = `${GOOGLE_MAPS_CONFIG.SCRIPT_URL}?key=${GOOGLE_MAPS_CONFIG.API_KEY}&callback=initMap`;
+      script.src = `${GOOGLE_MAPS_CONFIG.SCRIPT_URL}?key=${GOOGLE_MAPS_CONFIG.API_KEY}&loading=async&callback=initMap&libraries=marker`;
       script.async = true;
       script.defer = true;
+      script.onload = () => {
+        window.googleMapsLoaded = true;
+        window.googleMapsScriptLoading = false;
+      };
+      script.onerror = () => {
+        window.googleMapsScriptLoading = false;
+      };
       document.head.appendChild(script);
-    } else {
-      // If Google Maps is already loaded, initialize the map
-      if (window.initMap) {
-        window.initMap();
-      }
     }
 
     return () => {
-      // Cleanup
+      if (clickListenerRef.current && window.google) {
+        const googleMaps = window.google as { maps: { event: { removeListener: (listener: unknown) => void } } };
+        googleMaps.maps.event.removeListener(clickListenerRef.current);
+      }
       delete window.initMap;
     };
-  }, [center, waterways, pinpoints, isAddingPinpoint, onWaterwayClick, onPinpointClick, onMapClick]);
+  }, [initializeMap]);
 
   if (isLoading) {
     return (
@@ -181,7 +241,7 @@ const GoogleMapSimple: React.FC<GoogleMapSimpleProps> = ({
 
   return (
     <div className="map-container">
-      <div ref={mapRef} style={containerStyle}></div>
+      <div ref={mapRef} style={containerStyle} />
     </div>
   );
 };

@@ -4,5 +4,5 @@ export const DEFAULT_LOCATION = {
 } as const;
 
 export const DEFAULT_ZOOM = 12;
-export const DEFAULT_RADIUS = 10000; // 10km radius
+export const DEFAULT_RADIUS = 3300; // 3.3km radius (reduced from 10km)
 export const WATERWAY_TYPES = ['river', 'stream', 'canal'] as const;

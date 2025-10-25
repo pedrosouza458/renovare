@@ -42,8 +42,13 @@ function App() {
       setCreateFormLocation({ lat, lng });
       setShowCreateForm(true);
       setIsAddingPinpoint(false);
+    } else {
+      // Update location and fetch waterways for the clicked location
+      const newLocation = { lat, lng };
+      setCurrentLocation(newLocation);
+      fetchWaterways(newLocation);
     }
-  }, [isAddingPinpoint]);
+  }, [isAddingPinpoint, fetchWaterways]);
 
   const handleCreatePinpoint = useCallback((postData: { type: PostType; title: string; description: string }) => {
     if (createFormLocation) {
