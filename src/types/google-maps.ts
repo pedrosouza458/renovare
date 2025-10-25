@@ -36,11 +36,3 @@ export interface GoogleMapMouseEvent {
     lng: () => number;
   };
 }
-
-declare global {
-  interface Window {
-    google?: GoogleMapsAPI;
-    initMap?: () => void;
-    googleMapsLoaded?: boolean;
-  }
-}

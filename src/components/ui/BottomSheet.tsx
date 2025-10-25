@@ -1,28 +1,56 @@
 import React from 'react';
-import type { WaterwayData } from '../../types';
+import type { Pinpoint } from '../../types';
+import { PinpointDetails } from './PinpointDetails';
 
 interface BottomSheetProps {
-  waterways: WaterwayData[];
+  pinpoints: Pinpoint[];
+  selectedPinpoint: Pinpoint | null;
   isOpen: boolean;
   onToggle: () => void;
-  onWaterwayClick: (waterway: WaterwayData) => void;
+  onPinpointClick: (pinpoint: Pinpoint) => void;
+  onClosePinpointDetails: () => void;
+  onAddPost: (pinpointId: string, postData: { type: 'alert' | 'cleaning' | 'both'; title: string; description: string }) => Promise<boolean>;
+  onDeletePinpoint: (pinpointId: string) => Promise<boolean>;
 }
 
-const getWaterwayIcon = (type: string): string => {
-  switch (type) {
-    case 'river': return '🏞️';
-    case 'stream': return '🏊';
-    default: return '🚣';
-  }
+const getPinpointIcon = (pinpoint: Pinpoint): string => {
+  if (pinpoint.posts.length === 0) return '📍';
+  
+  const hasAlert = pinpoint.posts.some(p => p.type === 'alert' || p.type === 'both');
+  const hasCleaning = pinpoint.posts.some(p => p.type === 'cleaning' || p.type === 'both');
+  
+  if (hasAlert && hasCleaning) return '🔄';
+  if (hasAlert) return '⚠️';
+  if (hasCleaning) return '🧹';
+  return '📍';
 };
 
 export const BottomSheet: React.FC<BottomSheetProps> = ({
-  waterways,
+  pinpoints,
+  selectedPinpoint,
   isOpen,
   onToggle,
-  onWaterwayClick
+  onPinpointClick,
+  onClosePinpointDetails,
+  onAddPost,
+  onDeletePinpoint
 }) => {
-  if (waterways.length === 0) return null;
+  // If a pinpoint is selected, show its details
+  if (selectedPinpoint) {
+    return (
+      <div className="bottom-sheet expanded">
+        <PinpointDetails
+          pinpoint={selectedPinpoint}
+          onClose={onClosePinpointDetails}
+          onAddPost={onAddPost}
+          onDelete={onDeletePinpoint}
+        />
+      </div>
+    );
+  }
+
+  // Otherwise show the pinpoints list
+  if (pinpoints.length === 0) return null;
 
   return (
     <div className={`bottom-sheet ${isOpen ? 'expanded' : 'collapsed'}`}>
@@ -34,10 +62,10 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       {/* Bottom sheet header */}
       <div className="bottom-sheet-header" onClick={onToggle}>
         <div className="header-content">
-          <div className="header-icon">🌊</div>
+          <div className="header-icon">📍</div>
           <div className="header-text">
-            <h3>Waterways nearby</h3>
-            <p>{waterways.length} {waterways.length === 1 ? 'result' : 'results'}</p>
+            <h3>Pinpoints</h3>
+            <p>{pinpoints.length} {pinpoints.length === 1 ? 'pinpoint' : 'pinpoints'}</p>
           </div>
         </div>
         <div className="expand-icon">
@@ -45,24 +73,26 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
         </div>
       </div>
 
-      {/* Rivers list - Only visible when expanded */}
+      {/* Pinpoints list - Only visible when expanded */}
       {isOpen && (
         <div className="bottom-sheet-content">
           <div className="rivers-list">
-            {waterways.map((waterway) => (
+            {pinpoints.map((pinpoint) => (
               <div
-                key={waterway.id}
+                key={pinpoint.id}
                 className="river-item"
-                onClick={() => onWaterwayClick(waterway)}
+                onClick={() => onPinpointClick(pinpoint)}
               >
                 <div className="river-info">
                   <div className="river-icon">
-                    {getWaterwayIcon(waterway.type)}
+                    {getPinpointIcon(pinpoint)}
                   </div>
                   <div className="river-details">
-                    <h4 className="river-name">{waterway.name}</h4>
+                    <h4 className="river-name">
+                      {pinpoint.latitude.toFixed(4)}, {pinpoint.longitude.toFixed(4)}
+                    </h4>
                     <p className="river-meta">
-                      {waterway.type.charAt(0).toUpperCase() + waterway.type.slice(1)} • {waterway.coordinates.length} points
+                      {pinpoint.posts.length} {pinpoint.posts.length === 1 ? 'post' : 'posts'} • {new Date(pinpoint.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
