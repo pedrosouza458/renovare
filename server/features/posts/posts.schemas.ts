@@ -16,7 +16,17 @@ export const createPostBodySchema = z.object({
   type: z.nativeEnum(PostTypes),
   text: z.string().optional(),
   pinId: z.string(),
-  photos: z.array(postPhotoSchema).optional(),
+  photos: z.array(postPhotoSchema).min(1, "At least one photo is required"),
+}).refine((data) => {
+  // Validate photo count based on post type
+  const requiredPhotos = data.type === 'BOTH' ? 2 : 1;
+  if (data.photos.length !== requiredPhotos) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Invalid number of photos for post type",
+  path: ["photos"],
 });
 
 export const updatePostBodySchema = z.object({

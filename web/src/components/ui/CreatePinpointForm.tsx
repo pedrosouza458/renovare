@@ -52,6 +52,13 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
   };
 
   const handleAddPhoto = () => {
+    const maxPhotos = postData.type === 'both' ? 2 : 1;
+    
+    if (postData.photos.length >= maxPhotos) {
+      alert(`You can only add ${maxPhotos} photo${maxPhotos > 1 ? 's' : ''} for ${postData.type} posts.`);
+      return;
+    }
+
     if (photoInputMethod === 'url' && photoUrl.trim()) {
       setPostData(prev => ({
         ...prev,
@@ -81,7 +88,19 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
     if (newType === 'cleaning') {
       return; // Don't change the type
     }
-    setPostData({ ...postData, type: newType });
+    
+    // Clear photos if switching between different photo requirements
+    const currentRequiredPhotos = postData.type === 'both' ? 2 : 1;
+    const newRequiredPhotos = newType === 'both' ? 2 : 1;
+    
+    if (currentRequiredPhotos !== newRequiredPhotos) {
+      setPostData({ ...postData, type: newType, photos: [] });
+      setPhotoPreview(null);
+      setPhotoUrl('');
+      setIsAddingPhoto(false);
+    } else {
+      setPostData({ ...postData, type: newType });
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -93,6 +112,14 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
     // Business rule validation: first post cannot be cleaning
     if (postData.type === 'cleaning') {
       alert('The first post in a pinpoint cannot be a cleaning post. Please select Alert or Both.');
+      return;
+    }
+    
+    // Photo validation: require exact number based on type
+    const requiredPhotos = postData.type === 'both' ? 2 : 1;
+    if (postData.photos.length !== requiredPhotos) {
+      const typeText = postData.type === 'both' ? 'Both' : postData.type === 'alert' ? 'Alert' : 'Cleaning';
+      alert(`${typeText} posts require exactly ${requiredPhotos} photo${requiredPhotos > 1 ? 's' : ''}.`);
       return;
     }
     
@@ -185,7 +212,26 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
 
           {/* Photo upload section */}
           <div className="form-group">
-            <label>Photos (optional)</label>
+            <label>
+              Photos (required) - {postData.type === 'both' ? '2 photos needed' : '1 photo needed'}
+            </label>
+            <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+              {postData.type === 'both' 
+                ? 'Upload 2 photos: one showing the issue, one showing it cleaned'
+                : postData.type === 'alert'
+                ? 'Upload 1 photo showing the environmental issue'
+                : 'Upload 1 photo showing the area after cleaning'
+              }
+              {postData.photos.length > 0 && (
+                <span style={{ 
+                  color: postData.photos.length === (postData.type === 'both' ? 2 : 1) ? '#22c55e' : '#f59e0b',
+                  fontWeight: 500,
+                  marginLeft: 8
+                }}>
+                  ({postData.photos.length}/{postData.type === 'both' ? 2 : 1})
+                </span>
+              )}
+            </div>
             {postData.photos.length > 0 && (
               <div className="photo-thumbs" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
                 {postData.photos.map((p, idx) => (
@@ -209,7 +255,7 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
                 ))}
               </div>
             )}
-            {!isAddingPhoto && (
+            {!isAddingPhoto && postData.photos.length < (postData.type === 'both' ? 2 : 1) && (
               <button
                 type="button"
                 className="add-photo-trigger"
@@ -341,7 +387,10 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
             <button 
               type="submit"
               className="create-btn"
-              disabled={!postData.text.trim()}
+              disabled={!postData.text.trim() || 
+                (postData.type === 'both' && postData.photos.length !== 2) ||
+                ((postData.type === 'alert' || postData.type === 'cleaning') && postData.photos.length !== 1)
+              }
             >
               Create Pinpoint
             </button>

@@ -56,11 +56,31 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
     if (newType === 'cleaning' && !hasAlertOrBoth) {
       return; // Don't change the type
     }
-    setNewPost({ ...newPost, type: newType });
+    
+    // Clear photos if switching between different photo requirements
+    const currentRequiredPhotos = newPost.type === 'both' ? 2 : 1;
+    const newRequiredPhotos = newType === 'both' ? 2 : 1;
+    
+    if (currentRequiredPhotos !== newRequiredPhotos) {
+      setNewPost({ ...newPost, type: newType, photos: [] });
+      setPhotoPreview(null);
+      setPhotoUrl('');
+      setIsAddingPhoto(false);
+    } else {
+      setNewPost({ ...newPost, type: newType });
+    }
   };
 
   const handleAddPost = async () => {
     if (!newPost.text.trim()) return;
+    
+    // Validate required photos based on post type
+    const requiredPhotos = newPost.type === 'both' ? 2 : 1;
+    if (newPost.photos.length !== requiredPhotos) {
+      const typeText = newPost.type === 'both' ? 'Both' : newPost.type === 'alert' ? 'Alert' : 'Cleaning';
+      alert(`${typeText} posts require exactly ${requiredPhotos} photo${requiredPhotos > 1 ? 's' : ''}.`);
+      return;
+    }
     
     try {
       const success = await onAddPost(pinpoint.id, newPost);
@@ -99,6 +119,13 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
   };
 
   const handleAddPhoto = () => {
+    const maxPhotos = newPost.type === 'both' ? 2 : 1;
+    
+    if (newPost.photos.length >= maxPhotos) {
+      alert(`You can only add ${maxPhotos} photo${maxPhotos > 1 ? 's' : ''} for ${newPost.type} posts.`);
+      return;
+    }
+
     if (photoInputMethod === 'url' && photoUrl.trim()) {
       setNewPost(prev => ({
         ...prev,
@@ -227,7 +254,26 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
             />
             {/* Photos section */}
             <div className="form-group">
-              <label>Photos (optional)</label>
+              <label>
+                Photos (required) - {newPost.type === 'both' ? '2 photos needed' : '1 photo needed'}
+              </label>
+              <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+                {newPost.type === 'both' 
+                  ? 'Upload 2 photos: one showing the issue, one showing it cleaned'
+                  : newPost.type === 'alert'
+                  ? 'Upload 1 photo showing the environmental issue'
+                  : 'Upload 1 photo showing the area after cleaning'
+                }
+                {newPost.photos.length > 0 && (
+                  <span style={{ 
+                    color: newPost.photos.length === (newPost.type === 'both' ? 2 : 1) ? '#22c55e' : '#f59e0b',
+                    fontWeight: 500,
+                    marginLeft: 8
+                  }}>
+                    ({newPost.photos.length}/{newPost.type === 'both' ? 2 : 1})
+                  </span>
+                )}
+              </div>
               {newPost.photos.length > 0 && (
                 <div className="photo-thumbs" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
                   {newPost.photos.map((p, idx) => (
@@ -251,7 +297,7 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
                   ))}
                 </div>
               )}
-              {!isAddingPhoto && (
+              {!isAddingPhoto && newPost.photos.length < (newPost.type === 'both' ? 2 : 1) && (
                 <button
                   type="button"
                   className="add-photo-trigger"
@@ -375,7 +421,10 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
               <button 
                 className="save-btn"
                 onClick={handleAddPost}
-                disabled={!newPost.text.trim()}
+                disabled={!newPost.text.trim() || 
+                  (newPost.type === 'both' && newPost.photos.length !== 2) ||
+                  ((newPost.type === 'alert' || newPost.type === 'cleaning') && newPost.photos.length !== 1)
+                }
               >
                 Save Post
               </button>
