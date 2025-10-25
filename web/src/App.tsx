@@ -9,7 +9,7 @@ import { usePinpoints } from './hooks/usePinpoints';
 import { useAuth } from './hooks/useAuth';
 import type { WaterwayData, Location } from './types';
 import { findNearbyPinpoints, formatDistance } from './utils/locationUtils';
-import type { PostType, Pinpoint } from './types';
+import type { PostType, Pinpoint, PostPhoto } from './types';
 import { DEFAULT_LOCATION } from './constants';
 
 function App() {
@@ -55,7 +55,7 @@ function App() {
     }
   }, [isAddingPinpoint, fetchWaterways]);
 
-  const handleCreatePinpoint = useCallback(async (postData: { type: PostType; text: string }) => {
+  const handleCreatePinpoint = useCallback(async (postData: { type: PostType; text: string; photos: PostPhoto[] }) => {
     if (createFormLocation) {
       try {
         const newPinpoint = await createPinpointWithPost(

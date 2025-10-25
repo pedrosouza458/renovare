@@ -68,20 +68,21 @@ export const pinpointService = {
   async createPinpointWithPost(
     latitude: number, 
     longitude: number, 
-    postData: { type: PostType; text: string }
+    postData: { type: PostType; text: string; photos?: Array<{ url: string }> }
   ): Promise<Pinpoint> {
     // First create the pinpoint
     const newPinpoint = await pinService.createPin({
       latitude,
       longitude,
-      lastActionSummary: postData.text.substring(0, 100) // Use first 100 chars as summary
+      lastActionSummary: mapPostTypeToBackend(postData.type) // Set to post type, not text
     });
 
     // Then create the post associated with the pinpoint
     const createPostPayload: CreatePostData = {
       type: mapPostTypeToBackend(postData.type) as 'ALERT' | 'CLEANING' | 'BOTH',
       text: postData.text,
-      pinId: newPinpoint.id
+      pinId: newPinpoint.id,
+      photos: postData.photos && postData.photos.length > 0 ? postData.photos : undefined
     };
 
     const newPost = await postService.createPost(createPostPayload);

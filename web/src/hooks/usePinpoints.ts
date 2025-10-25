@@ -36,7 +36,7 @@ export const usePinpoints = () => {
   const createPinpointWithPost = useCallback(async (
     latitude: number, 
     longitude: number, 
-    postData: { type: PostType; text: string }
+    postData: { type: PostType; text: string; photos?: Array<{ url: string }> }
   ): Promise<Pinpoint> => {
     setLoading(true);
     setError(null);
