@@ -45,7 +45,11 @@ export async function registerUserHandler(
   try {
     const parsed = createUserBodySchema.parse(request.body);
     const user = await registerUser(prisma, parsed as any);
-    return reply.code(201).send(user);
+    
+    // Generate JWT token for automatic login after registration
+    const token = await reply.jwtSign({ userId: user.id });
+    
+    return reply.code(201).send({ token, user });
   } catch (err: any) {
     // Zod or create errors
     const message = err?.message ?? "Internal Server Error";

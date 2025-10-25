@@ -19,9 +19,45 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     email: '',
     password: '',
     username: '',
+    cpf: '',
     confirmPassword: ''
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // CPF validation function
+  const validateCPF = (cpf: string): boolean => {
+    // Remove non-numeric characters
+    const cleanCPF = cpf.replace(/\D/g, '');
+    
+    // Check if CPF has 11 digits
+    if (cleanCPF.length !== 11) return false;
+    
+    // Check for known invalid CPFs (all same digits)
+    if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
+    
+    // Validate CPF using the algorithm
+    let sum = 0;
+    let remainder;
+    
+    // Validate first digit
+    for (let i = 1; i <= 9; i++) {
+      sum += parseInt(cleanCPF.substring(i - 1, i)) * (11 - i);
+    }
+    remainder = (sum * 10) % 11;
+    if (remainder === 10 || remainder === 11) remainder = 0;
+    if (remainder !== parseInt(cleanCPF.substring(9, 10))) return false;
+    
+    // Validate second digit
+    sum = 0;
+    for (let i = 1; i <= 10; i++) {
+      sum += parseInt(cleanCPF.substring(i - 1, i)) * (12 - i);
+    }
+    remainder = (sum * 10) % 11;
+    if (remainder === 10 || remainder === 11) remainder = 0;
+    if (remainder !== parseInt(cleanCPF.substring(10, 11))) return false;
+    
+    return true;
+  };
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -43,6 +79,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         errors.username = 'Username is required';
       } else if (formData.username.length < 3) {
         errors.username = 'Username must be at least 3 characters';
+      }
+      
+      if (!formData.cpf) {
+        errors.cpf = 'CPF is required';
+      } else if (!validateCPF(formData.cpf)) {
+        errors.cpf = 'Please enter a valid CPF';
       }
       
       if (!formData.confirmPassword) {
@@ -67,12 +109,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       if (mode === 'login') {
         success = await login(formData.email, formData.password);
       } else {
-        success = await register(formData.username, formData.email, formData.password);
+        success = await register(formData.username, formData.email, formData.cpf, formData.password);
       }
       
       if (success) {
         onClose();
-        setFormData({ email: '', password: '', username: '', confirmPassword: '' });
+        setFormData({ email: '', password: '', username: '', cpf: '', confirmPassword: '' });
         setValidationErrors({});
       }
     } catch (err) {
@@ -82,7 +124,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value }));
+    let value = e.target.value;
+    
+    // Format CPF as user types
+    if (field === 'cpf') {
+      // Remove all non-numeric characters
+      value = value.replace(/\D/g, '');
+      
+      // Apply CPF formatting: 000.000.000-00
+      if (value.length <= 11) {
+        value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+        value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{1})$/, '$1.$2.$3-$4');
+        value = value.replace(/(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3');
+        value = value.replace(/(\d{3})(\d{1})$/, '$1.$2');
+      }
+    }
+    
+    setFormData(prev => ({ ...prev, [field]: value }));
     // Clear validation error when user starts typing
     if (validationErrors[field]) {
       setValidationErrors(prev => ({ ...prev, [field]: '' }));
@@ -142,6 +200,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 />
                 {validationErrors.username && (
                   <span className="field-error">{validationErrors.username}</span>
+                )}
+              </div>
+            )}
+
+            {mode === 'register' && (
+              <div className="form-field">
+                <label htmlFor="cpf">CPF</label>
+                <input
+                  id="cpf"
+                  type="text"
+                  value={formData.cpf}
+                  onChange={handleInputChange('cpf')}
+                  className={validationErrors.cpf ? 'error' : ''}
+                  placeholder="Enter your CPF (000.000.000-00)"
+                  maxLength={14}
+                  disabled={loading}
+                />
+                {validationErrors.cpf && (
+                  <span className="field-error">{validationErrors.cpf}</span>
                 )}
               </div>
             )}

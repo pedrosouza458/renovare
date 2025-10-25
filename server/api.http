@@ -27,6 +27,7 @@ Content-Type: application/json
 {
   "username": "new_user",
   "email": "new.user@example.com",
+  "cpf": "12345678901",
   "password": "supersecret",
   "points": 0
 }
@@ -45,6 +46,7 @@ Accept: application/json
 {
   "username": "updatedd_name",
   "email": "updatedd.email@example.com",
+  "cpf": "98765432100",
   "password": "newsecret",
   "points": 10
 }

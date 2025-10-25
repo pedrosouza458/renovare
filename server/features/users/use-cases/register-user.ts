@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 export type RegisterUserInput = {
   username: string;
   email: string;
+  cpf: string;
   password: string;
   points?: number;
 };
@@ -14,11 +15,17 @@ export async function registerUser(
 ) {
   // check uniqueness
   const exists = await prisma.users.findFirst({
-    where: { OR: [{ email: data.email }, { username: data.username }] },
+    where: { 
+      OR: [
+        { email: data.email }, 
+        { username: data.username },
+        { cpf: data.cpf }
+      ] 
+    },
   });
 
   if (exists) {
-    throw new Error("User already exists with given email or username");
+    throw new Error("User already exists with given email, username, or CPF");
   }
 
   const hashed = await bcrypt.hash(data.password, 10);
@@ -27,10 +34,11 @@ export async function registerUser(
     data: {
       username: data.username,
       email: data.email,
+      cpf: data.cpf,
       password: hashed,
       points: data.points ?? 0,
     },
-    select: { id: true, username: true, email: true, points: true },
+    select: { id: true, username: true, email: true, cpf: true, points: true },
   });
 
   return user;

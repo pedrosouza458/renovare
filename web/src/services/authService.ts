@@ -15,8 +15,16 @@ export class AuthService {
     return response;
   }
 
-  async register(userData: CreateUserData): Promise<User> {
-    return apiClient.post<User>(API_CONFIG.ENDPOINTS.USERS, userData);
+  async register(userData: CreateUserData): Promise<LoginResponse> {
+    const response = await apiClient.post<LoginResponse>(
+      API_CONFIG.ENDPOINTS.USERS, 
+      userData
+    );
+    
+    // Store the token in the API client for automatic login
+    apiClient.setToken(response.token);
+    
+    return response;
   }
 
   async getProfile(): Promise<User> {

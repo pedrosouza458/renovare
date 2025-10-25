@@ -4,7 +4,7 @@ import type { User } from '../types';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Start with loading true
   const [error, setError] = useState<string | null>(null);
 
   const loadProfile = useCallback(async () => {
@@ -17,8 +17,9 @@ export const useAuth = () => {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load profile';
       setError(errorMessage);
       console.error('Error loading profile:', err);
-      // Clear invalid token
-      localStorage.removeItem('auth_token');
+      // Clear invalid token using the proper logout method
+      authService.logout();
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -29,6 +30,8 @@ export const useAuth = () => {
     const token = localStorage.getItem('auth_token');
     if (token) {
       loadProfile();
+    } else {
+      setLoading(false); // No token found, stop loading
     }
   }, [loadProfile]);
 
@@ -49,12 +52,12 @@ export const useAuth = () => {
     }
   }, []);
 
-  const register = useCallback(async (username: string, email: string, password: string): Promise<boolean> => {
+  const register = useCallback(async (username: string, email: string, cpf: string, password: string): Promise<boolean> => {
     setLoading(true);
     setError(null);
     try {
-      const newUser = await authService.register({ username, email, password });
-      setUser(newUser);
+      const response = await authService.register({ username, email, cpf, password });
+      setUser(response.user);
       return true;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to register';
@@ -72,6 +75,8 @@ export const useAuth = () => {
     setError(null);
   }, []);
 
+  const isAuthenticated = !!user;
+
   return {
     user,
     loading,
@@ -79,6 +84,6 @@ export const useAuth = () => {
     login,
     register,
     logout,
-    isAuthenticated: !!user
+    isAuthenticated
   };
 };

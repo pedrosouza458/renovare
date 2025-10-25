@@ -40,9 +40,9 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
   });
 
   // Check if cleaning posts are allowed
-  const hasAlertOrBoth = pinpoint.posts.some(post => 
+  const hasAlertOrBoth = pinpoint.posts?.some(post => 
     post.type === 'alert' || post.type === 'both'
-  );
+  ) || false;
 
   const handlePostTypeChange = (newType: PostType) => {
     // If trying to select cleaning but no alert/both posts exist, keep current type or switch to alert
@@ -100,7 +100,7 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
 
       <div className="posts-section">
         <div className="posts-header">
-          <h4>Posts ({pinpoint.posts.length})</h4>
+          <h4>Posts ({pinpoint.posts?.length || 0})</h4>
           <button 
             className="add-post-btn"
             onClick={() => setShowAddForm(!showAddForm)}
@@ -155,7 +155,7 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
         )}
 
         <div className="posts-list">
-          {pinpoint.posts.length === 0 ? (
+          {!pinpoint.posts || pinpoint.posts.length === 0 ? (
             <p className="no-posts">No posts yet. Add the first one!</p>
           ) : (
             pinpoint.posts.map((post) => (

@@ -14,7 +14,7 @@ interface BottomSheetProps {
 }
 
 const getPinpointIcon = (pinpoint: Pinpoint): string => {
-  if (pinpoint.posts.length === 0) return '📍';
+  if (!pinpoint.posts || pinpoint.posts.length === 0) return '📍';
   
   const hasAlert = pinpoint.posts.some(p => p.type === 'alert' || p.type === 'both');
   const hasCleaning = pinpoint.posts.some(p => p.type === 'cleaning' || p.type === 'both');
@@ -92,7 +92,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                       {pinpoint.latitude.toFixed(4)}, {pinpoint.longitude.toFixed(4)}
                     </h4>
                     <p className="river-meta">
-                      {pinpoint.posts.length} {pinpoint.posts.length === 1 ? 'post' : 'posts'} • {new Date(pinpoint.createdAt).toLocaleDateString()}
+                      {pinpoint.posts?.length || 0} {(pinpoint.posts?.length || 0) === 1 ? 'post' : 'posts'} • {new Date(pinpoint.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>

@@ -1,16 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import './styles/index.css';
 import GoogleMapSimple from './components/GoogleMapSimple';
-import { LoadingSpinner, ErrorIndicator, BottomSheet, ProfileButton } from './components/ui';
+import { LoadingSpinner, ErrorIndicator, BottomSheet, ProfileButton, LoginScreen } from './components/ui';
 import { AddPinpointButton } from './components/ui/AddPinpointButton';
 import { CreatePinpointForm } from './components/ui/CreatePinpointForm';
 import { useWaterways } from './hooks/useWaterways';
 import { usePinpoints } from './hooks/usePinpoints';
+import { useAuth } from './hooks/useAuth';
 import type { WaterwayData, Location } from './types';
 import type { Pinpoint, PostType } from './types/pinpoint';
 import { DEFAULT_LOCATION } from './constants';
 
 function App() {
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const { waterways, loading, error, fetchWaterways } = useWaterways();
   const { pinpoints, createPinpointWithPost, addPostToPinpoint, deletePinpoint } = usePinpoints();
   const [currentLocation, setCurrentLocation] = useState<Location | null>(DEFAULT_LOCATION);
@@ -83,6 +85,16 @@ function App() {
       setSelectedPinpoint(null);
     }
   }, [isPinpointsPanelOpen]);
+
+  // Show loading spinner while checking authentication state
+  if (authLoading) {
+    return <LoadingSpinner message="Loading..." />;
+  }
+
+  // Show login screen if user is not authenticated
+  if (!isAuthenticated) {
+    return <LoginScreen />;
+  }
 
   return (
     <div className="app-container">

@@ -1,7 +1,12 @@
 import { PostTypes } from "@prisma/client";
 import { prisma } from "./lib/prisma";
+import bcrypt from "bcryptjs";
+
 async function main() {
   console.log(`Start seeding ...`);
+
+  // Hash passwords for test users
+  const testPassword = await bcrypt.hash("test123", 10);
 
   // --- 1. Create Users ---
   const user1 = await prisma.users.upsert({
@@ -10,7 +15,8 @@ async function main() {
     create: {
       username: "charqueadas_user",
       email: "charqueadas.user@example.com",
-      password: "hashed_password_1", // In a real app, this should be a proper hash
+      cpf: "85508128204", // Valid CPF for testing
+      password: testPassword, // Properly hashed password: "test123"
       points: 150,
     },
   });
@@ -21,7 +27,8 @@ async function main() {
     create: {
       username: "sao_jeronimo_cleaner",
       email: "sao.jeronimo.cleaner@example.com",
-      password: "hashed_password_2",
+      cpf: "48330063240", // Valid CPF for testing
+      password: testPassword, // Properly hashed password: "test123"
       points: 250,
     },
   });
@@ -32,7 +39,8 @@ async function main() {
     create: {
       username: "admin_reporter",
       email: "admin.reporter@example.com",
-      password: "hashed_password_3",
+      cpf: "99794726427", // Valid CPF for testing
+      password: testPassword, // Properly hashed password: "test123"
       points: 50,
     },
   });

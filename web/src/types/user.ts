@@ -2,12 +2,14 @@ export interface User {
   id: string;
   username: string;
   email: string;
+  cpf: string;
   points?: number;
 }
 
 export interface CreateUserData {
   username: string;
   email: string;
+  cpf: string;
   password: string;
   points?: number;
 }
@@ -15,6 +17,7 @@ export interface CreateUserData {
 export interface UpdateUserData {
   username?: string;
   email?: string;
+  cpf?: string;
   password?: string;
   points?: number;
 }

@@ -114,7 +114,7 @@ const GoogleMapSimple: React.FC<GoogleMapSimpleProps> = ({
         const hasCleaning = pinpoint.posts?.some(post => post.type === 'cleaning' || post.type === 'both');
         
         let color = '#808080';
-        if (hasAlert && hasCleaning) color = '#800080';
+        if (hasAlert && hasCleaning) color = '#1e40af';
         else if (hasAlert) color = '#ff0000';
         else if (hasCleaning) color = '#00ff00';
 

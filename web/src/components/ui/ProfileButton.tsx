@@ -9,12 +9,12 @@ interface ProfileButtonProps {
 
 export const ProfileButton: React.FC<ProfileButtonProps> = ({ className = '' }) => {
   const { user, isAuthenticated, logout } = useAuth();
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [showSidePanel, setShowSidePanel] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleClick = () => {
     if (isAuthenticated) {
-      setShowDropdown(!showDropdown);
+      setShowSidePanel(!showSidePanel);
     } else {
       setShowAuthModal(true);
     }
@@ -22,7 +22,7 @@ export const ProfileButton: React.FC<ProfileButtonProps> = ({ className = '' }) 
 
   const handleLogout = () => {
     logout();
-    setShowDropdown(false);
+    setShowSidePanel(false);
   };
 
   return (
@@ -60,14 +60,14 @@ export const ProfileButton: React.FC<ProfileButtonProps> = ({ className = '' }) 
         )}
       </button>
 
-      {showDropdown && isAuthenticated && (
+      {showSidePanel && isAuthenticated && (
         <>
           <div 
-            className="dropdown-overlay" 
-            onClick={() => setShowDropdown(false)}
+            className="side-panel-overlay" 
+            onClick={() => setShowSidePanel(false)}
           />
-          <div className="profile-dropdown">
-            <div className="dropdown-header">
+          <div className="profile-side-panel">
+            <div className="side-panel-header">
               <div className="user-info">
                 <div className="user-avatar">
                   <span className="user-initial">
@@ -85,37 +85,65 @@ export const ProfileButton: React.FC<ProfileButtonProps> = ({ className = '' }) 
                   )}
                 </div>
               </div>
+              <button 
+                className="close-panel-btn"
+                onClick={() => setShowSidePanel(false)}
+                aria-label="Close panel"
+              >
+                ✕
+              </button>
             </div>
-            <div className="dropdown-divider"></div>
-            <button 
-              className="dropdown-item logout-item"
-              onClick={handleLogout}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path 
-                  d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                />
-                <path 
-                  d="M16 17L21 12L16 7" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                />
-                <path 
-                  d="M21 12H9" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Logout
-            </button>
+            <div className="side-panel-content">
+              <div className="panel-section">
+                <h3>Profile Information</h3>
+                <div className="info-item">
+                  <span className="info-label">Username:</span>
+                  <span className="info-value">{user?.username}</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Email:</span>
+                  <span className="info-value">{user?.email}</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Points:</span>
+                  <span className="info-value">
+                    <span className="points-icon">⭐</span>
+                    {user?.points || 0}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="side-panel-footer">
+              <button 
+                className="logout-btn"
+                onClick={handleLogout}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path 
+                    d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  />
+                  <path 
+                    d="M16 17L21 12L16 7" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  />
+                  <path 
+                    d="M21 12H9" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                Logout
+              </button>
+            </div>
           </div>
         </>
       )}

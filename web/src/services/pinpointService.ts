@@ -50,10 +50,19 @@ interface BackendPinpoint {
 const mapPinpointFromBackend = (backendPinpoint: BackendPinpoint): Pinpoint => {
   return {
     ...backendPinpoint,
-    posts: backendPinpoint.posts?.map((post: BackendPost) => ({
-      ...post,
-      type: mapPostTypeFromBackend(post.type)
-    })) || []
+    posts: backendPinpoint.posts?.map((post: BackendPost) => {
+      // Parse title and description from text field
+      const textParts = post.text?.split('\n\n') || [];
+      const title = textParts[0] || '';
+      const description = textParts.slice(1).join('\n\n') || '';
+      
+      return {
+        ...post,
+        type: mapPostTypeFromBackend(post.type),
+        title,
+        description
+      };
+    }) || []
   };
 };
 
@@ -78,7 +87,7 @@ export const pinpointService = {
     // Then create the post associated with the pinpoint
     const createPostPayload: CreatePostData = {
       type: mapPostTypeToBackend(postData.type) as 'ALERT' | 'CLEANING' | 'BOTH',
-      text: postData.description,
+      text: `${postData.title}\n\n${postData.description}`,
       pinId: newPinpoint.id
     };
 
@@ -95,10 +104,10 @@ export const pinpointService = {
     pinpointId: string, 
     postData: { type: PostType; title: string; description: string }
   ): Promise<Pinpoint> {
-    // Create the post
+    // Create the post with combined title and description
     const createPostPayload: CreatePostData = {
       type: mapPostTypeToBackend(postData.type) as 'ALERT' | 'CLEANING' | 'BOTH',
-      text: postData.description,
+      text: `${postData.title}\n\n${postData.description}`,
       pinId: pinpointId
     };
 

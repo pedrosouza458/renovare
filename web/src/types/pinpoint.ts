@@ -10,6 +10,8 @@ export interface Post {
   id: string;
   type: PostType;
   text?: string;
+  title?: string;
+  description?: string;
   reported: boolean;
   numberOfReports: number;
   userId: string;

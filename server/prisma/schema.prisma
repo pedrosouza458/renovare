@@ -17,6 +17,7 @@ model Users {
   id       String  @id @default(uuid())
   username String  @unique
   email    String  @unique
+  cpf      String  @unique
   password String
   points   Int     @default(0)
   posts    Posts[]
