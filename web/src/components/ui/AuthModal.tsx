@@ -63,34 +63,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     const errors: Record<string, string> = {};
     
     if (!formData.email) {
-      errors.email = 'Email is required';
+      errors.email = 'Email é obrigatório';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = 'Please enter a valid email';
+      errors.email = 'Por favor, insira um email válido';
     }
     
     if (!formData.password) {
-      errors.password = 'Password is required';
+      errors.password = 'Senha é obrigatória';
     } else if (formData.password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
+      errors.password = 'A senha deve ter pelo menos 6 caracteres';
     }
     
     if (mode === 'register') {
       if (!formData.username) {
-        errors.username = 'Username is required';
+        errors.username = 'Nome de usuário é obrigatório';
       } else if (formData.username.length < 3) {
-        errors.username = 'Username must be at least 3 characters';
+        errors.username = 'Nome de usuário deve ter pelo menos 3 caracteres';
       }
       
       if (!formData.cpf) {
-        errors.cpf = 'CPF is required';
+        errors.cpf = 'CPF é obrigatório';
       } else if (!validateCPF(formData.cpf)) {
-        errors.cpf = 'Please enter a valid CPF';
+        errors.cpf = 'Por favor, insira um CPF válido';
       }
       
       if (!formData.confirmPassword) {
-        errors.confirmPassword = 'Please confirm your password';
+        errors.confirmPassword = 'Por favor, confirme sua senha';
       } else if (formData.password !== formData.confirmPassword) {
-        errors.confirmPassword = 'Passwords do not match';
+        errors.confirmPassword = 'As senhas não coincidem';
       }
     }
     
@@ -158,7 +158,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     <div className="auth-modal-overlay" onClick={onClose}>
       <div className="auth-modal" onClick={e => e.stopPropagation()}>
         <div className="auth-modal-header">
-          <h2>{mode === 'login' ? 'Welcome Back' : 'Create Account'}</h2>
+          <h2>{mode === 'login' ? 'Bem-vindo de volta' : 'Criar Conta'}</h2>
           <button className="auth-modal-close" onClick={onClose}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path 
@@ -179,8 +179,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
             <p>
               {mode === 'login' 
-                ? 'Sign in to save your waterway discoveries and track your environmental contributions!'
-                : 'Join our community and start making a difference in waterway monitoring!'
+                ? 'Faça login para salvar suas descobertas de cursos d\'água e acompanhar suas contribuições ambientais!'
+                : 'Junte-se à nossa comunidade e comece a fazer a diferença no monitoramento de cursos d\'água!'
               }
             </p>
           </div>
@@ -188,14 +188,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <form onSubmit={handleSubmit} className="auth-form">
             {mode === 'register' && (
               <div className="form-field">
-                <label htmlFor="username">Username</label>
+                <label htmlFor="username">Nome de usuário</label>
                 <input
                   id="username"
                   type="text"
                   value={formData.username}
                   onChange={handleInputChange('username')}
                   className={validationErrors.username ? 'error' : ''}
-                  placeholder="Enter your username"
+                  placeholder="Digite seu nome de usuário"
                   disabled={loading}
                 />
                 {validationErrors.username && (
@@ -213,7 +213,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   value={formData.cpf}
                   onChange={handleInputChange('cpf')}
                   className={validationErrors.cpf ? 'error' : ''}
-                  placeholder="Enter your CPF (000.000.000-00)"
+                  placeholder="Digite seu CPF (000.000.000-00)"
                   maxLength={14}
                   disabled={loading}
                 />
@@ -231,7 +231,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 value={formData.email}
                 onChange={handleInputChange('email')}
                 className={validationErrors.email ? 'error' : ''}
-                placeholder="Enter your email"
+                placeholder="Digite seu email"
                 disabled={loading}
               />
               {validationErrors.email && (
@@ -240,14 +240,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
 
             <div className="form-field">
-              <label htmlFor="password">Password</label>
+              <label htmlFor="password">Senha</label>
               <input
                 id="password"
                 type="password"
                 value={formData.password}
                 onChange={handleInputChange('password')}
                 className={validationErrors.password ? 'error' : ''}
-                placeholder="Enter your password"
+                placeholder="Digite sua senha"
                 disabled={loading}
               />
               {validationErrors.password && (
@@ -257,14 +257,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
             {mode === 'register' && (
               <div className="form-field">
-                <label htmlFor="confirmPassword">Confirm Password</label>
+                <label htmlFor="confirmPassword">Confirmar Senha</label>
                 <input
                   id="confirmPassword"
                   type="password"
                   value={formData.confirmPassword}
                   onChange={handleInputChange('confirmPassword')}
                   className={validationErrors.confirmPassword ? 'error' : ''}
-                  placeholder="Confirm your password"
+                  placeholder="Confirme sua senha"
                   disabled={loading}
                 />
                 {validationErrors.confirmPassword && (
@@ -292,17 +292,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               {loading ? (
                 <div className="loading-spinner">
                   <div className="spinner"></div>
-                  {mode === 'login' ? 'Signing in...' : 'Creating account...'}
+                  {mode === 'login' ? 'Entrando...' : 'Criando conta...'}
                 </div>
               ) : (
-                mode === 'login' ? 'Sign In' : 'Create Account'
+                mode === 'login' ? 'Entrar' : 'Criar Conta'
               )}
             </button>
           </form>
 
           <div className="auth-switch">
             <span>
-              {mode === 'login' ? "Don't have an account?" : 'Already have an account?'}
+              {mode === 'login' ? "Não tem uma conta?" : 'Já tem uma conta?'}
             </span>
             <button 
               type="button" 
@@ -310,7 +310,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               onClick={switchMode}
               disabled={loading}
             >
-              {mode === 'login' ? 'Sign Up' : 'Sign In'}
+              {mode === 'login' ? 'Cadastrar' : 'Entrar'}
             </button>
           </div>
         </div>

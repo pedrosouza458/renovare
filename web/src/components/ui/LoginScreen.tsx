@@ -86,7 +86,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
               <h1>Renovare</h1>
             </div>
             <p className="login-subtitle">
-              Transform your community through environmental action
+              Transforme sua comunidade através da ação ambiental
             </p>
           </div>
 
@@ -97,14 +97,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 className={`tab-button ${mode === 'login' ? 'active' : ''}`}
                 onClick={() => setMode('login')}
               >
-                Sign In
+                Entrar
               </button>
               <button
                 type="button"
                 className={`tab-button ${mode === 'register' ? 'active' : ''}`}
                 onClick={() => setMode('register')}
               >
-                Sign Up
+                Cadastrar
               </button>
             </div>
 
@@ -118,14 +118,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             <div className="form-fields">
               {mode === 'register' && (
                 <div className="form-group">
-                  <label htmlFor="username">Username</label>
+                  <label htmlFor="username">Nome de usuário</label>
                   <input
                     id="username"
                     name="username"
                     type="text"
                     value={formData.username}
                     onChange={handleInputChange}
-                    placeholder="Enter your username"
+                    placeholder="Digite seu nome de usuário"
                     required
                     autoComplete="username"
                   />
@@ -133,14 +133,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
               )}
 
               <div className="form-group">
-                <label htmlFor="email">Email</label>
+                <label htmlFor="email">E-mail</label>
                 <input
                   id="email"
                   name="email"
                   type="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  placeholder="Enter your email"
+                  placeholder="Digite seu e-mail"
                   required
                   autoComplete="email"
                 />
@@ -163,14 +163,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
               )}
 
               <div className="form-group">
-                <label htmlFor="password">Password</label>
+                <label htmlFor="password">Senha</label>
                 <input
                   id="password"
                   name="password"
                   type="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  placeholder="Enter your password"
+                  placeholder="Digite sua senha"
                   required
                   autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 />
@@ -185,16 +185,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
               {loading ? (
                 <span className="loading-spinner"></span>
               ) : (
-                mode === 'login' ? 'Sign In' : 'Sign Up'
+                mode === 'login' ? 'Entrar' : 'Cadastrar'
               )}
             </button>
           </form>
 
           <div className="login-footer">
             <p>
-              {mode === 'login' ? "Don't have an account? " : "Already have an account? "}
+              {mode === 'login' ? "Não tem uma conta? " : "Já tem uma conta? "}
               <button type="button" className="link-button" onClick={toggleMode}>
-                {mode === 'login' ? 'Sign up here' : 'Sign in here'}
+                {mode === 'login' ? 'Cadastre-se aqui' : 'Entre aqui'}
               </button>
             </p>
           </div>

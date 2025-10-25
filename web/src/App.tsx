@@ -112,7 +112,7 @@ function App() {
 
   // Show loading spinner while checking authentication state
   if (authLoading) {
-    return <LoadingSpinner message="Loading..." />;
+    return <LoadingSpinner message="Carregando..." />;
   }
 
   // Show login screen if user is not authenticated
@@ -139,7 +139,7 @@ function App() {
       <ProfileButton className="profile-button-positioned" />
 
       {/* Loading indicator */}
-      {loading && <LoadingSpinner message="Finding waterways..." />}
+      {loading && <LoadingSpinner message="Procurando cursos d'água..." />}
       
       {/* Error indicator */}
       {error && <ErrorIndicator message={error} />}

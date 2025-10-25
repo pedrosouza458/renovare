@@ -64,8 +64,8 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
         <div className="header-content">
           <div className="header-icon">📍</div>
           <div className="header-text">
-            <h3>Pinpoints</h3>
-            <p>{pinpoints.length} {pinpoints.length === 1 ? 'pinpoint' : 'pinpoints'}</p>
+            <h3>Pontos</h3>
+            <p>{pinpoints.length} {pinpoints.length === 1 ? 'ponto' : 'pontos'}</p>
           </div>
         </div>
         <div className="expand-icon">
@@ -92,7 +92,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                       {pinpoint.latitude.toFixed(4)}, {pinpoint.longitude.toFixed(4)}
                     </h4>
                     <p className="river-meta">
-                      {pinpoint.posts?.length || 0} {(pinpoint.posts?.length || 0) === 1 ? 'post' : 'posts'} • {new Date(pinpoint.createdAt).toLocaleDateString()}
+                      {pinpoint.posts?.length || 0} {(pinpoint.posts?.length || 0) === 1 ? 'postagem' : 'postagens'} • {new Date(pinpoint.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>

@@ -13,17 +13,17 @@ export const AddPinpointButton: React.FC<AddPinpointButtonProps> = ({
     <button 
       className={`add-pinpoint-button ${isAddingMode ? 'active' : ''}`}
       onClick={onToggleAddMode}
-      title={isAddingMode ? 'Cancel adding pinpoint' : 'Add new pinpoint'}
+      title={isAddingMode ? 'Cancelar adição de ponto' : 'Adicionar novo ponto'}
     >
       {isAddingMode ? (
         <>
           <span className="button-icon">✕</span>
-          <span className="button-text">Cancel</span>
+          <span className="button-text">Cancelar</span>
         </>
       ) : (
         <>
           <span className="button-icon">📍</span>
-          <span className="button-text">Add Pinpoint</span>
+          <span className="button-text">Adicionar Ponto</span>
         </>
       )}
     </button>

@@ -32,7 +32,7 @@ export const ProfileButton: React.FC<ProfileButtonProps> = ({ className = '' }) 
       <button 
         className={`profile-button ${isAuthenticated ? 'authenticated' : 'unauthenticated'}`}
         onClick={handleClick}
-        aria-label={isAuthenticated ? 'User profile' : 'Login'}
+        aria-label={isAuthenticated ? 'Perfil do usuário' : 'Entrar'}
       >
         {isAuthenticated ? (
           <div className="profile-avatar">
@@ -82,7 +82,7 @@ export const ProfileButton: React.FC<ProfileButtonProps> = ({ className = '' }) 
                   {typeof user?.points === 'number' && (
                     <div className="user-points">
                       <span className="points-icon">⭐</span>
-                      {user.points} points
+                      {user.points} pontos
                     </div>
                   )}
                 </div>
@@ -90,16 +90,16 @@ export const ProfileButton: React.FC<ProfileButtonProps> = ({ className = '' }) 
               <button 
                 className="close-panel-btn"
                 onClick={() => setShowSidePanel(false)}
-                aria-label="Close panel"
+                aria-label="Fechar painel"
               >
                 ✕
               </button>
             </div>
             <div className="side-panel-content">
               <div className="panel-section">
-                <h3>Profile Information</h3>
+                <h3>Informações do Perfil</h3>
                 <div className="info-item">
-                  <span className="info-label">Username:</span>
+                  <span className="info-label">Nome de usuário:</span>
                   <span className="info-value">{user?.username}</span>
                 </div>
                 <div className="info-item">
@@ -107,7 +107,7 @@ export const ProfileButton: React.FC<ProfileButtonProps> = ({ className = '' }) 
                   <span className="info-value">{user?.email}</span>
                 </div>
                 <div className="info-item">
-                  <span className="info-label">Points:</span>
+                  <span className="info-label">Pontos:</span>
                   <span className="info-value">
                     <span className="points-icon">⭐</span>
                     {user?.points || 0}
@@ -143,7 +143,7 @@ export const ProfileButton: React.FC<ProfileButtonProps> = ({ className = '' }) 
                     strokeLinejoin="round"
                   />
                 </svg>
-                Logout
+                Sair
               </button>
             </div>
           </div>

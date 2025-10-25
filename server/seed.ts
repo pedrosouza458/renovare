@@ -98,7 +98,7 @@ async function main() {
   const alertPost = await prisma.posts.create({
     data: {
       type: PostTypes.ALERT,
-      text: "Large amount of plastic bottles and trash scattered around this area. Environmental concern!",
+      text: "Grande quantidade de garrafas plásticas e lixo espalhados nesta área. Preocupação ambiental!",
       userId: pinCharqueadas.id,
       pinId: alertPin.id,
       photos: {
@@ -116,7 +116,7 @@ async function main() {
   const cleaningAlertPost = await prisma.posts.create({
     data: {
       type: PostTypes.ALERT,
-      text: "Massive trash accumulation blocking the drainage system. This needs immediate cleaning!",
+      text: "Acúmulo massivo de lixo bloqueando o sistema de drenagem. Isso precisa de limpeza imediata!",
       userId: pinAdminReporter.id,
       pinId: cleaningPin.id,
       photos: {
@@ -134,7 +134,7 @@ async function main() {
   const cleaningPost = await prisma.posts.create({
     data: {
       type: PostTypes.CLEANING,
-      text: "Successfully cleaned up the entire area! Took 3 hours but the drainage is now clear.",
+      text: "Área completamente limpa com sucesso! Levou 3 horas, mas a drenagem está agora desobstruída.",
       userId: pinSaoJeronimo.id,
       pinId: cleaningPin.id,
       photos: {
@@ -152,7 +152,7 @@ async function main() {
   const bothPost = await prisma.posts.create({
     data: {
       type: PostTypes.BOTH,
-      text: "Found trash problem and partially cleaned it. Before and after photos show the progress made.",
+      text: "Encontrei problema de lixo e limpei parcialmente. Fotos antes e depois mostram o progresso feito.",
       userId: pinSaoJeronimo.id,
       pinId: bothPin.id,
       photos: {
@@ -170,8 +170,124 @@ async function main() {
     },
   });
 
+  // --- Additional Pins for Charqueadas and São Jerônimo ---
+  
+  // Pin 4: Charqueadas - Rio Jacuí area
+  const charqueadasRio = await prisma.pins.create({
+    data: {
+      latitude: -29.9648,
+      longitude: -51.6189,
+      lastActionSummary: "ALERT",
+    },
+  });
+
+  // Pin 5: Charqueadas - Centro area
+  const charqueadasCentro = await prisma.pins.create({
+    data: {
+      latitude: -29.9583,
+      longitude: -51.6247,
+      lastActionSummary: "CLEANING",
+    },
+  });
+
+  // Pin 6: São Jerônimo - Arroio area
+  const saoJeronimoArroio = await prisma.pins.create({
+    data: {
+      latitude: -29.9556,
+      longitude: -51.7222,
+      lastActionSummary: "BOTH",
+    },
+  });
+
+  // Pin 7: São Jerônimo - Industrial area
+  const saoJeronimoIndustrial = await prisma.pins.create({
+    data: {
+      latitude: -29.9503,
+      longitude: -51.7306,
+      lastActionSummary: "ALERT",
+    },
+  });
+
+  // Additional posts for the new pins
+  
+  // Post for Charqueadas Rio
+  const charqueadasRioPost = await prisma.posts.create({
+    data: {
+      type: PostTypes.ALERT,
+      text: "Óleo e resíduos industriais sendo despejados no Rio Jacuí. Situação crítica para a fauna aquática!",
+      userId: pinCharqueadas.id,
+      pinId: charqueadasRio.id,
+      photos: {
+        create: [
+          {
+            url: "https://h2oglobalnews.com/wp-content/uploads/2021/08/bottles-87342_1920.jpg",
+            isBefore: true,
+          },
+        ],
+      },
+    },
+  });
+
+  // Post for Charqueadas Centro
+  const charqueadasCentroPost = await prisma.posts.create({
+    data: {
+      type: PostTypes.CLEANING,
+      text: "Mutirão de limpeza realizado na área central de Charqueadas. Removidos 50kg de resíduos sólidos!",
+      userId: pinSaoJeronimo.id,
+      pinId: charqueadasCentro.id,
+      photos: {
+        create: [
+          {
+            url: "https://www.ocregister.com/wp-content/uploads/2023/01/OCR-L-INLANDTRASH-0117-20.jpeg?w=1600&resize=1600,900",
+            isBefore: false,
+          },
+        ],
+      },
+    },
+  });
+
+  // Post for São Jerônimo Arroio
+  const saoJeronimoArroioPost = await prisma.posts.create({
+    data: {
+      type: PostTypes.BOTH,
+      text: "Detectado assoreamento no arroio de São Jerônimo e iniciada limpeza comunitária. Progresso significativo!",
+      userId: pinAdminReporter.id,
+      pinId: saoJeronimoArroio.id,
+      photos: {
+        create: [
+          {
+            url: "https://h2oglobalnews.com/wp-content/uploads/2021/08/bottles-87342_1920.jpg",
+            isBefore: true,
+          },
+          {
+            url: "https://www.ocregister.com/wp-content/uploads/2023/01/OCR-L-INLANDTRASH-0117-20.jpeg?w=1600&resize=1600,900",
+            isBefore: false,
+          },
+        ],
+      },
+    },
+  });
+
+  // Post for São Jerônimo Industrial
+  const saoJeronimoIndustrialPost = await prisma.posts.create({
+    data: {
+      type: PostTypes.ALERT,
+      text: "Vazamento de efluentes químicos na zona industrial de São Jerônimo. Necessária intervenção urgente dos órgãos ambientais!",
+      userId: pinCharqueadas.id,
+      pinId: saoJeronimoIndustrial.id,
+      photos: {
+        create: [
+          {
+            url: "https://h2oglobalnews.com/wp-content/uploads/2021/08/bottles-87342_1920.jpg",
+            isBefore: true,
+          },
+        ],
+      },
+    },
+  });
+
   console.log(
-    `Created posts: ${alertPost.id}, ${cleaningAlertPost.id}, ${cleaningPost.id}, ${bothPost.id}`
+    `Created posts: ${alertPost.id}, ${cleaningAlertPost.id}, ${cleaningPost.id}, ${bothPost.id}, ${charqueadasRioPost.id}, ${charqueadasCentroPost.id}, ${saoJeronimoArroioPost.id}, ${saoJeronimoIndustrialPost.id}`
   );
 
   console.log(`Seeding finished.`);

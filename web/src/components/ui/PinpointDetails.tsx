@@ -78,8 +78,8 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
     // Validate required photos based on post type
     const requiredPhotos = newPost.type === 'both' ? 2 : 1;
     if (newPost.photos.length !== requiredPhotos) {
-      const typeText = newPost.type === 'both' ? 'Both' : newPost.type === 'alert' ? 'Alert' : 'Cleaning';
-      alert(`${typeText} posts require exactly ${requiredPhotos} photo${requiredPhotos > 1 ? 's' : ''}.`);
+      const typeText = newPost.type === 'both' ? 'Ambos' : newPost.type === 'alert' ? 'Alerta' : 'Limpeza';
+      alert(`Postagens do tipo ${typeText} requerem exatamente ${requiredPhotos} foto${requiredPhotos > 1 ? 's' : ''}.`);
       return;
     }
     
@@ -94,7 +94,7 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
         setShowAddForm(false);
       }
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Failed to add post. Please try again.');
+      alert(error instanceof Error ? error.message : 'Falha ao adicionar postagem. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -118,7 +118,7 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
       })
       .catch(error => {
         console.error('Image compression failed:', error);
-        alert('Failed to process image. Please try a different image.');
+        alert('Falha ao processar imagem. Tente uma imagem diferente.');
       });
   };
 
@@ -126,7 +126,7 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
     const maxPhotos = newPost.type === 'both' ? 2 : 1;
     
     if (newPost.photos.length >= maxPhotos) {
-      alert(`You can only add ${maxPhotos} photo${maxPhotos > 1 ? 's' : ''} for ${newPost.type} posts.`);
+      alert(`Você só pode adicionar ${maxPhotos} foto${maxPhotos > 1 ? 's' : ''} para postagens do tipo ${newPost.type}.`);
       return;
     }
 
@@ -155,7 +155,7 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this pinpoint?')) {
+    if (window.confirm('Tem certeza que deseja excluir este ponto?')) {
       const success = await onDelete(pinpoint.id);
       if (success) {
         onClose();
@@ -200,19 +200,19 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
     <div className="pinpoint-details">
       <div className="pinpoint-header">
         <div className="pinpoint-info">
-          <h3>📍 Pinpoint Details</h3>
+          <h3>📍 Detalhes do Ponto</h3>
           <p className="pinpoint-coords">
             {pinpoint.latitude.toFixed(6)}, {pinpoint.longitude.toFixed(6)}
           </p>
           <p className="pinpoint-date">
-            Created: {new Date(pinpoint.createdAt).toLocaleDateString()}
+            Criado: {new Date(pinpoint.createdAt).toLocaleDateString()}
           </p>
         </div>
         <div className="pinpoint-actions">
-          <button className="delete-btn" onClick={handleDelete} title="Delete pinpoint">
+          <button className="delete-btn" onClick={handleDelete} title="Excluir ponto">
             🗑️
           </button>
-          <button className="close-btn" onClick={onClose} title="Close">
+          <button className="close-btn" onClick={onClose} title="Fechar">
             ✕
           </button>
         </div>
@@ -220,12 +220,12 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
 
       <div className="posts-section">
         <div className="posts-header">
-          <h4>Posts ({pinpoint.posts?.length || 0})</h4>
+          <h4>Postagens ({pinpoint.posts?.length || 0})</h4>
           <button 
             className="add-post-btn"
             onClick={() => setShowAddForm(!showAddForm)}
           >
-            {showAddForm ? 'Cancel' : '+ Add Post'}
+            {showAddForm ? 'Cancelar' : '+ Adicionar Postagem'}
           </button>
         </div>
 
@@ -235,19 +235,19 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
               value={newPost.type}
               onChange={(e) => handlePostTypeChange(e.target.value as PostType)}
             >
-              <option value="alert">⚠️ Alert</option>
+              <option value="alert">⚠️ Alerta</option>
               {(() => {
                 return hasAlertOrBoth ? (
-                  <option value="cleaning">🧹 Cleaning</option>
+                  <option value="cleaning">🧹 Limpeza</option>
                 ) : (
-                  <option value="cleaning" disabled>🧹 Cleaning (requires alert first)</option>
+                  <option value="cleaning" disabled>🧹 Limpeza (requer alerta primeiro)</option>
                 );
               })()}
-              <option value="both">🔄 Both</option>
+              <option value="both">🔄 Ambos</option>
             </select>
             {newPost.type === 'cleaning' && !hasAlertOrBoth && (
               <div className="form-warning">
-                ⚠️ You must create an alert post first before adding a cleaning post.
+                ⚠️ Você deve criar uma postagem de alerta primeiro antes de adicionar uma postagem de limpeza.
               </div>
             )}
             <input
@@ -259,14 +259,14 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
             {/* Photos section */}
             <div className="form-group">
               <label>
-                Photos (required) - {newPost.type === 'both' ? '2 photos needed' : '1 photo needed'}
+                Fotos (obrigatório) - {newPost.type === 'both' ? '2 fotos necessárias' : '1 foto necessária'}
               </label>
               <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
                 {newPost.type === 'both' 
-                  ? 'Upload 2 photos: one showing the issue, one showing it cleaned'
+                  ? 'Envie 2 fotos: uma mostrando o problema, outra mostrando após a limpeza'
                   : newPost.type === 'alert'
-                  ? 'Upload 1 photo showing the environmental issue'
-                  : 'Upload 1 photo showing the area after cleaning'
+                  ? 'Envie 1 foto mostrando o problema ambiental'
+                  : 'Envie 1 foto mostrando a área após a limpeza'
                 }
                 {newPost.photos.length > 0 && (
                   <span style={{ 
@@ -311,7 +311,7 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
                     color: 'white', border: 'none', padding: '8px 14px', borderRadius: 8,
                     cursor: 'pointer', fontSize: 14, fontWeight: 500
                   }}
-                >+ Add Photo</button>
+                >+ Adicionar Foto</button>
               )}
               {isAddingPhoto && (
                 <div className="photo-uploader" style={{ marginTop: 8 }}>
@@ -433,10 +433,10 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
                 {isSubmitting ? (
                   <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span className="loading-spinner"></span>
-                    Saving...
+                    Salvando...
                   </span>
                 ) : (
-                  'Save Post'
+                  'Salvar Postagem'
                 )}
               </button>
             </div>
@@ -445,7 +445,7 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
 
         <div className="posts-list">
           {!pinpoint.posts || pinpoint.posts.length === 0 ? (
-            <p className="no-posts">No posts yet. Add the first one!</p>
+            <p className="no-posts">Nenhuma postagem ainda. Adicione a primeira!</p>
           ) : (
             pinpoint.posts.map((post) => {
               const photoClass = post.photos && post.photos.length === 1 ? 'single-photo' : 'dual-photos';

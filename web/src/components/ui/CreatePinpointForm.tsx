@@ -47,7 +47,7 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
       })
       .catch(error => {
         console.error('Image compression failed:', error);
-        alert('Failed to process image. Please try a different image.');
+      alert('Falha ao processar imagem. Tente uma imagem diferente.');
       });
   };
 
@@ -55,7 +55,7 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
     const maxPhotos = postData.type === 'both' ? 2 : 1;
     
     if (postData.photos.length >= maxPhotos) {
-      alert(`You can only add ${maxPhotos} photo${maxPhotos > 1 ? 's' : ''} for ${postData.type} posts.`);
+      alert(`Você só pode adicionar ${maxPhotos} foto${maxPhotos > 1 ? 's' : ''} para postagens do tipo ${postData.type}.`);
       return;
     }
 
@@ -111,15 +111,15 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
     
     // Business rule validation: first post cannot be cleaning
     if (postData.type === 'cleaning') {
-      alert('The first post in a pinpoint cannot be a cleaning post. Please select Alert or Both.');
+      alert('A primeira postagem em um ponto não pode ser de limpeza. Selecione Alerta ou Ambos.');
       return;
     }
     
     // Photo validation: require exact number based on type
     const requiredPhotos = postData.type === 'both' ? 2 : 1;
     if (postData.photos.length !== requiredPhotos) {
-      const typeText = postData.type === 'both' ? 'Both' : postData.type === 'alert' ? 'Alert' : 'Cleaning';
-      alert(`${typeText} posts require exactly ${requiredPhotos} photo${requiredPhotos > 1 ? 's' : ''}.`);
+      const typeText = postData.type === 'both' ? 'Ambos' : postData.type === 'alert' ? 'Alerta' : 'Limpeza';
+      alert(`Postagens do tipo ${typeText} requerem exatamente ${requiredPhotos} foto${requiredPhotos > 1 ? 's' : ''}.`);
       return;
     }
     
@@ -130,8 +130,8 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
     <div className="create-pinpoint-overlay">
       <div className="create-pinpoint-form">
         <div className="form-header">
-          <h3>📍 Create New Pinpoint</h3>
-          <button className="close-btn" onClick={onCancel} title="Cancel">
+          <h3>📍 Criar Novo Ponto</h3>
+          <button className="close-btn" onClick={onCancel} title="Cancelar">
             ✕
           </button>
         </div>
@@ -142,15 +142,15 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
             <div className="auth-banner-content">
               <div className="auth-banner-icon">⭐</div>
               <div className="auth-banner-text">
-                <strong>Sign in to earn points!</strong>
-                <span>Get rewarded for your environmental contributions</span>
+                <strong>Entre para ganhar pontos!</strong>
+                <span>Seja recompensado por suas contribuições ambientais</span>
               </div>
               <button 
                 type="button"
                 className="auth-banner-button"
                 onClick={() => setShowAuthModal(true)}
               >
-                Sign In
+                Entrar
               </button>
             </div>
           </div>
@@ -164,9 +164,9 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
                 {user.username?.charAt(0).toUpperCase() || 'U'}
               </div>
               <div className="user-attribution-text">
-                <span>Creating as <strong>{user.username}</strong></span>
+                <span>Criando como <strong>{user.username}</strong></span>
                 {typeof user.points === 'number' && (
-                  <span className="current-points">⭐ {user.points} points</span>
+                  <span className="current-points">⭐ {user.points} pontos</span>
                 )}
               </div>
             </div>
@@ -174,35 +174,35 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
         )}
 
         <div className="location-info">
-          <p>📍 Location: {latitude.toFixed(6)}, {longitude.toFixed(6)}</p>
-          <p className="form-note">A pinpoint must have at least one post</p>
+          <p>📍 Localização: {latitude.toFixed(6)}, {longitude.toFixed(6)}</p>
+          <p className="form-note">Um ponto deve ter pelo menos uma postagem</p>
         </div>
 
         <form onSubmit={handleSubmit} className="post-form">
           <div className="form-group">
-            <label htmlFor="post-type">Post Type</label>
+            <label htmlFor="post-type">Tipo de Postagem</label>
             <select 
               id="post-type"
               value={postData.type}
               onChange={(e) => handleTypeChange(e.target.value as PostType)}
               required
             >
-              <option value="alert">⚠️ Alert</option>
-              <option value="cleaning" disabled>🧹 Cleaning (requires alert first)</option>
-              <option value="both">🔄 Both</option>
+              <option value="alert">⚠️ Alerta</option>
+              <option value="cleaning" disabled>🧹 Limpeza (requer alerta primeiro)</option>
+              <option value="both">🔄 Ambos</option>
             </select>
             {postData.type === 'cleaning' && (
               <div className="form-warning">
-                ⚠️ Cleaning posts can only be added after creating an alert or both post first.
+                ⚠️ Postagens de limpeza só podem ser adicionadas após criar uma postagem de alerta ou ambos primeiro.
               </div>
             )}
           </div>
 
           <div className="form-group">
-            <label htmlFor="post-text">Post Content</label>
+            <label htmlFor="post-text">Conteúdo da Postagem</label>
             <textarea
               id="post-text"
-              placeholder="Enter post content..."
+              placeholder="Digite o conteúdo da postagem..."
               value={postData.text}
               onChange={(e) => setPostData({ ...postData, text: e.target.value })}
               rows={4}
@@ -213,14 +213,14 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
           {/* Photo upload section */}
           <div className="form-group">
             <label>
-              Photos (required) - {postData.type === 'both' ? '2 photos needed' : '1 photo needed'}
+              Fotos (obrigatório) - {postData.type === 'both' ? '2 fotos necessárias' : '1 foto necessária'}
             </label>
             <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
               {postData.type === 'both' 
-                ? 'Upload 2 photos: one showing the issue, one showing it cleaned'
+                ? 'Envie 2 fotos: uma mostrando o problema, outra mostrando após a limpeza'
                 : postData.type === 'alert'
-                ? 'Upload 1 photo showing the environmental issue'
-                : 'Upload 1 photo showing the area after cleaning'
+                ? 'Envie 1 foto mostrando o problema ambiental'
+                : 'Envie 1 foto mostrando a área após a limpeza'
               }
               {postData.photos.length > 0 && (
                 <span style={{ 
@@ -265,7 +265,7 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
                   color: 'white', border: 'none', padding: '8px 14px', borderRadius: 8,
                   cursor: 'pointer', fontSize: 14, fontWeight: 500
                 }}
-              >+ Add Photo</button>
+              >+ Adicionar Foto</button>
             )}
             {isAddingPhoto && (
               <div className="photo-uploader" style={{ marginTop: 8 }}>
@@ -283,7 +283,7 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
                       cursor: 'pointer',
                       fontSize: 14
                     }}
-                  >Upload File</button>
+                  >Enviar Arquivo</button>
                   <button
                     type="button"
                     onClick={() => setPhotoInputMethod('url')}
@@ -296,7 +296,7 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
                       cursor: 'pointer',
                       fontSize: 14
                     }}
-                  >Photo URL</button>
+                  >URL da Foto</button>
                 </div>
 
                 {photoInputMethod === 'file' ? (
@@ -320,7 +320,7 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
                   <div>
                     <input
                       type="url"
-                      placeholder="Enter image URL (https://...)"
+                      placeholder="Digite a URL da imagem (https://...)"
                       value={photoUrl}
                       onChange={(e) => setPhotoUrl(e.target.value)}
                       style={{
@@ -357,7 +357,7 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
                         background: '#10b981', color: 'white', border: 'none', padding: '8px 14px',
                         borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 500
                       }}
-                    >Confirm</button>
+                      >Confirmar</button>
                     <button
                       type="button"
                       onClick={() => { 
@@ -369,7 +369,7 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
                         background: '#f56565', color: 'white', border: 'none', padding: '8px 14px',
                         borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 500
                       }}
-                    >Cancel</button>
+                    >Cancelar</button>
                   </div>
                 )}
               </div>
@@ -382,7 +382,7 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
               className="cancel-btn"
               onClick={onCancel}
             >
-              Cancel
+              Cancelar
             </button>
             <button 
               type="submit"
@@ -392,7 +392,7 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
                 ((postData.type === 'alert' || postData.type === 'cleaning') && postData.photos.length !== 1)
               }
             >
-              Create Pinpoint
+              Criar Ponto
             </button>
           </div>
         </form>
