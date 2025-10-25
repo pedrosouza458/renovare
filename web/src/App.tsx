@@ -10,7 +10,7 @@ import { useAuth } from './hooks/useAuth';
 import type { WaterwayData, Location } from './types';
 import { findNearbyPinpoints, formatDistance } from './utils/locationUtils';
 import type { PostType, Pinpoint, PostPhoto } from './types';
-import { DEFAULT_LOCATION } from './constants';
+import { DEFAULT_LOCATION } from './constants/map';
 
 function App() {
   const { isAuthenticated, loading: authLoading } = useAuth();
@@ -26,6 +26,29 @@ function App() {
   // Load initial waterways when component mounts
   useEffect(() => {
     fetchWaterways(DEFAULT_LOCATION);
+    
+    // Try to get user's actual location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          setCurrentLocation(userLocation);
+          fetchWaterways(userLocation);
+        },
+        (error) => {
+          console.log('Geolocation error:', error);
+          // Continue with default location if geolocation fails
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000 // 5 minutes
+        }
+      );
+    }
   }, [fetchWaterways]);
 
   const handleWaterwayClick = useCallback((waterway: WaterwayData) => {
@@ -183,6 +206,7 @@ function App() {
         onClosePinpointDetails={() => setSelectedPinpoint(null)}
         onAddPost={addPostToPinpoint}
         onDeletePinpoint={deletePinpoint}
+        userLocation={currentLocation}
       />
     </div>
   );

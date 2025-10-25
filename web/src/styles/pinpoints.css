@@ -28,6 +28,25 @@
   pointer-events: auto !important;
 }
 
+/* App Logo Positioning - Map Overlay */
+.app-logo-positioned {
+  position: absolute !important;
+  top: 20px !important;
+  right: 20px !important;
+  z-index: 1002 !important;
+  pointer-events: none !important;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  padding: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.app-logo-positioned img {
+  display: block;
+  border-radius: 50%;
+}
+
 .add-pinpoint-button:hover {
   background: #1557b0;
   box-shadow: 0 4px 12px rgba(26, 115, 232, 0.4);
@@ -558,6 +577,17 @@
     left: 16px !important;
   }
   
+  .app-logo-positioned {
+    top: 16px !important;
+    right: 16px !important;
+    padding: 6px;
+  }
+  
+  .app-logo-positioned img {
+    width: 32px;
+    height: 32px;
+  }
+  
   .pinpoint-details {
     padding: 12px;
   }
@@ -782,6 +812,17 @@
   .profile-button-positioned {
     top: 12px !important;
     left: 12px !important;
+  }
+  
+  .app-logo-positioned {
+    top: 12px !important;
+    right: 12px !important;
+    padding: 4px;
+  }
+  
+  .app-logo-positioned img {
+    width: 28px;
+    height: 28px;
   }
   
   .post-photo img {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import logoSvg from '../../assets/logo.svg';
 import './LoginScreen.css';
 
 interface LoginScreenProps {
@@ -82,12 +83,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         <div className="login-card">
           <div className="login-header">
             <div className="logo">
-              <span className="logo-icon">�</span>
-              <h1>Renovare</h1>
+              <img src={logoSvg} alt="Renovare Logo" className="logo-icon" width="150" height="150" style={{ margin: '-50px 0', display: 'block' }} />
             </div>
-            <p className="login-subtitle">
-              Transforme sua comunidade através da ação ambiental
-            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="login-form">

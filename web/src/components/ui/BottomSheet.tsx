@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Pinpoint } from '../../types';
 import { PinpointDetails } from './PinpointDetails';
+import { calculateDistance, formatDistance } from '../../utils/locationUtils';
 
 interface BottomSheetProps {
   pinpoints: Pinpoint[];
@@ -11,6 +12,7 @@ interface BottomSheetProps {
   onClosePinpointDetails: () => void;
   onAddPost: (pinpointId: string, postData: { type: 'alert' | 'cleaning' | 'both'; text: string; photos?: Array<{ url: string }> }) => Promise<boolean>;
   onDeletePinpoint: (pinpointId: string) => Promise<boolean>;
+  userLocation?: { lat: number; lng: number } | null;
 }
 
 const getPinpointIcon = (pinpoint: Pinpoint): string => {
@@ -33,8 +35,25 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   onPinpointClick,
   onClosePinpointDetails,
   onAddPost,
-  onDeletePinpoint
+  onDeletePinpoint,
+  userLocation
 }) => {
+  // Calculate distances and sort pinpoints by distance
+  const sortedPinpoints = React.useMemo(() => {
+    if (!userLocation) return pinpoints;
+    
+    return pinpoints
+      .map(pinpoint => ({
+        ...pinpoint,
+        distance: calculateDistance(
+          userLocation.lat,
+          userLocation.lng,
+          pinpoint.latitude,
+          pinpoint.longitude
+        )
+      }))
+      .sort((a, b) => a.distance - b.distance);
+  }, [pinpoints, userLocation]) as Array<Pinpoint & { distance?: number }>;
   // If a pinpoint is selected, show its details
   if (selectedPinpoint) {
     return (
@@ -50,7 +69,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   }
 
   // Otherwise show the pinpoints list
-  if (pinpoints.length === 0) return null;
+  if (sortedPinpoints.length === 0) return null;
 
   return (
     <div className={`bottom-sheet ${isOpen ? 'expanded' : 'collapsed'}`}>
@@ -65,7 +84,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
           <div className="header-icon">📍</div>
           <div className="header-text">
             <h3>Pontos</h3>
-            <p>{pinpoints.length} {pinpoints.length === 1 ? 'ponto' : 'pontos'}</p>
+            <p>{sortedPinpoints.length} {sortedPinpoints.length === 1 ? 'ponto' : 'pontos'}</p>
           </div>
         </div>
         <div className="expand-icon">
@@ -77,7 +96,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
       {isOpen && (
         <div className="bottom-sheet-content">
           <div className="rivers-list">
-            {pinpoints.map((pinpoint) => (
+            {sortedPinpoints.map((pinpoint) => (
               <div
                 key={pinpoint.id}
                 className="river-item"
@@ -89,7 +108,10 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                   </div>
                   <div className="river-details">
                     <h4 className="river-name">
-                      {pinpoint.latitude.toFixed(4)}, {pinpoint.longitude.toFixed(4)}
+                      {userLocation && pinpoint.distance !== undefined
+                        ? `${formatDistance(pinpoint.distance)} de distância`
+                        : `${pinpoint.latitude.toFixed(4)}, ${pinpoint.longitude.toFixed(4)}`
+                      }
                     </h4>
                     <p className="river-meta">
                       {pinpoint.posts?.length || 0} {(pinpoint.posts?.length || 0) === 1 ? 'postagem' : 'postagens'} • {new Date(pinpoint.createdAt).toLocaleDateString()}
