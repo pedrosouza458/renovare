@@ -82,11 +82,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         <div className="login-card">
           <div className="login-header">
             <div className="logo">
-              <span className="logo-icon">🌊</span>
-              <h1>EcoBonus</h1>
+              <span className="logo-icon">�</span>
+              <h1>Renovare</h1>
             </div>
             <p className="login-subtitle">
-              Monitor and protect waterways in your community
+              Transform your community through environmental action
             </p>
           </div>
 

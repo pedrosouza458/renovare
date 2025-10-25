@@ -12,6 +12,8 @@ export const ProfileButton: React.FC<ProfileButtonProps> = ({ className = '' }) 
   const [showSidePanel, setShowSidePanel] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
+  console.log('ProfileButton render - isAuthenticated:', isAuthenticated, 'user:', user);
+
   const handleClick = () => {
     if (isAuthenticated) {
       setShowSidePanel(!showSidePanel);

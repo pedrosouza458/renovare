@@ -1,8 +1,8 @@
 {
-  "name": "waterway-monitoring-web",
+  "name": "renovare-web",
   "private": true,
   "version": "1.0.0",
-  "description": "Waterway monitoring frontend application",
+  "description": "Renovare - Environmental action tracking frontend application",
   "type": "module",
   "scripts": {
     "dev": "vite",

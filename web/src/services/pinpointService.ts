@@ -1,7 +1,9 @@
 import { pinService } from './pinService';
 import { postService } from './postService';
+import { userService } from './userService';
 import type { Pinpoint, PostType } from '../types';
 import type { CreatePostData } from '../types/pinpoint';
+import { calculatePostScore } from '../utils/scoreCalculator';
 
 // Map frontend PostType to backend PostType
 const mapPostTypeToBackend = (type: PostType): string => {
@@ -84,6 +86,16 @@ export const pinpointService = {
 
     const newPost = await postService.createPost(createPostPayload);
 
+    // Calculate and update user score based on post type and proximity to water
+    try {
+      const score = await calculatePostScore(postData.type, latitude, longitude);
+      await userService.updateUserScore({ score });
+      console.log(`User score updated: +${score} points for ${postData.type} post`);
+    } catch (error) {
+      console.error('Failed to update user score:', error);
+      // Don't fail the entire operation if score update fails
+    }
+
     // Return the pinpoint with the post included
     return mapPinpointFromBackend({
       ...(newPinpoint as BackendPinpoint),
@@ -95,6 +107,9 @@ export const pinpointService = {
     pinpointId: string, 
     postData: { type: PostType; text: string; photos?: Array<{ url: string; isBefore?: boolean }> }
   ): Promise<Pinpoint> {
+    // Get the pinpoint first to access its coordinates for score calculation
+    const pinpoint = await pinService.getPinById(pinpointId) as BackendPinpoint;
+
     // Create the post with the text directly
     const createPostPayload: CreatePostData = {
       type: mapPostTypeToBackend(postData.type) as 'ALERT' | 'CLEANING' | 'BOTH',
@@ -104,6 +119,16 @@ export const pinpointService = {
     };
 
     await postService.createPost(createPostPayload);
+
+    // Calculate and update user score based on post type and proximity to water
+    try {
+      const score = await calculatePostScore(postData.type, pinpoint.latitude, pinpoint.longitude);
+      await userService.updateUserScore({ score });
+      console.log(`User score updated: +${score} points for ${postData.type} post`);
+    } catch (error) {
+      console.error('Failed to update user score:', error);
+      // Don't fail the entire operation if score update fails
+    }
 
     // Get the updated pinpoint
     const updatedPinpoint = await pinService.getPinById(pinpointId) as BackendPinpoint;

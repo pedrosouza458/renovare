@@ -10,8 +10,10 @@ export const useAuth = () => {
   const loadProfile = useCallback(async () => {
     setLoading(true);
     setError(null);
+    console.log('useAuth: Loading profile...');
     try {
       const profile = await authService.getProfile();
+      console.log('useAuth: Profile loaded:', profile);
       setUser(profile);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load profile';

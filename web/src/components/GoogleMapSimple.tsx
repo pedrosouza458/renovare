@@ -119,19 +119,28 @@ const GoogleMapSimple: React.FC<GoogleMapSimpleProps> = ({
       if (window.google?.maps) {
         const google = window.google;
         pinpoints.forEach(pinpoint => {
-          const hasAlert = pinpoint.posts?.some(post => post.type === 'alert' || post.type === 'both');
-          const hasCleaning = pinpoint.posts?.some(post => post.type === 'cleaning' || post.type === 'both');
+          console.log('Pin:', { id: pinpoint.id.slice(-8), lastActionSummary: pinpoint.lastActionSummary });
           
-          let color = '#808080';
-          if (hasAlert && hasCleaning) color = '#1e40af';
-          else if (hasAlert) color = '#ff0000';
-          else if (hasCleaning) color = '#00ff00';
+          // Use lastActionSummary to determine pin color and appearance
+          let color = '#808080'; // Default grey for pins with no action
+          let glyph = undefined;
+
+          // Green pin for CLEANING or BOTH actions (successful environmental actions)
+          if (pinpoint.lastActionSummary === 'CLEANING' || pinpoint.lastActionSummary === 'BOTH') {
+            color = '#22c55e'; // Green color
+          } 
+          // Yellow pin with warning symbol for ALERT actions (environmental problems)
+          else if (pinpoint.lastActionSummary === 'ALERT') {
+            color = '#fbbf24'; // Yellow color
+            glyph = '⚠️'; // Warning symbol inside the pin
+          }
 
           if (google.maps.marker?.AdvancedMarkerElement && google.maps.marker?.PinElement) {
             const pinElement = new google.maps.marker.PinElement({
               background: color,
               borderColor: '#ffffff',
               glyphColor: '#ffffff',
+              glyph: glyph,
               scale: 1.2,
             });
 

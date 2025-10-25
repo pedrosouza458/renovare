@@ -63,6 +63,11 @@ export async function createPost(
       });
     }
 
+    await tx.pins.update({
+      where: { id: data.pinId },
+      data: { lastActionSummary: data.type },
+    });
+
     return createdPost;
   });
 

@@ -5,11 +5,19 @@ import bcrypt from "bcryptjs";
 async function main() {
   console.log(`Start seeding ...`);
 
+  // Clear existing data (in order to avoid foreign key constraints)
+  console.log(`Clearing existing data...`);
+  await prisma.postPhoto.deleteMany();
+  await prisma.posts.deleteMany();
+  await prisma.pins.deleteMany();
+  await prisma.users.deleteMany();
+  console.log(`Data cleared.`);
+
   // Hash passwords for test users
   const testPassword = await bcrypt.hash("test123", 10);
 
   // --- 1. Create Users ---
-  const user1 = await prisma.users.upsert({
+  const pinCharqueadas = await prisma.users.upsert({
     where: { username: "charqueadas_user" },
     update: {},
     create: {
@@ -21,7 +29,7 @@ async function main() {
     },
   });
 
-  const user2 = await prisma.users.upsert({
+  const pinSaoJeronimo = await prisma.users.upsert({
     where: { username: "sao_jeronimo_cleaner" },
     update: {},
     create: {
@@ -33,7 +41,7 @@ async function main() {
     },
   });
 
-  const user3 = await prisma.users.upsert({
+  const pinAdminReporter = await prisma.users.upsert({
     where: { username: "admin_reporter" },
     update: {},
     create: {
@@ -46,55 +54,57 @@ async function main() {
   });
 
   console.log(
-    `Created users: ${user1.username}, ${user2.username}, ${user3.username}`
+    `Created users: ${pinCharqueadas.username}, ${pinSaoJeronimo.username}, ${pinAdminReporter.username}`
   );
 
   // --- 2. Create Pins (Locations) ---
+  // Creating pins with null lastActionSummary - will be updated automatically when posts are created
 
-  // Pin in Charqueadas (Approx. -29.955, -51.625)
-  const pinCharqueadas = await prisma.pins.create({
+  // Pin 1: Will have ALERT post
+  const alertPin = await prisma.pins.create({
     data: {
       latitude: -29.955,
       longitude: -51.625,
-      lastActionSummary: "Needs cleaning (Alert and Cleaning)",
+      lastActionSummary: "ALERT", 
     },
   });
 
-  // Pin in São Jerônimo (Approx. -29.959, -51.722)
-  const pinSaoJeronimo = await prisma.pins.create({
+  // Pin 2: Will have ALERT first, then CLEANING (lastActionSummary will be CLEANING)
+  const cleaningPin = await prisma.pins.create({
     data: {
       latitude: -29.959,
       longitude: -51.722,
-      lastActionSummary: "Hazard reported (Alert)",
+      lastActionSummary: "CLEANING",
     },
   });
 
-  // Another Pin in Charqueadas (slightly different location)
-  const pinCharqueadas2 = await prisma.pins.create({
+  // Pin 3: Will have BOTH post
+  const bothPin = await prisma.pins.create({
     data: {
       latitude: -29.96,
       longitude: -51.63,
-      lastActionSummary: "Alert reported by admin",
+      lastActionSummary: "BOTH",
     },
   });
 
   console.log(
-    `Created pins: ${pinCharqueadas.id}, ${pinSaoJeronimo.id}, ${pinCharqueadas2.id}`
+    `Created pins: ${alertPin.id}, ${cleaningPin.id}, ${bothPin.id}`
   );
 
   // --- 3. Create Posts and Photos ---
+  // Posts will automatically update the pin's lastActionSummary when created
 
-  // Post 1: ALERT in Charqueadas
-  const post1 = await prisma.posts.create({
+  // Post 1: ALERT post (Pin 1)
+  const alertPost = await prisma.posts.create({
     data: {
       type: PostTypes.ALERT,
-      text: "Large amount of trash blocking the drain on this street corner. High flood risk!",
-      userId: user3.id,
-      pinId: pinCharqueadas.id,
+      text: "Large amount of plastic bottles and trash scattered around this area. Environmental concern!",
+      userId: pinCharqueadas.id,
+      pinId: alertPin.id,
       photos: {
         create: [
           {
-            url: "https://example.com/photo-charqueadas-before.jpg",
+            url: "https://h2oglobalnews.com/wp-content/uploads/2021/08/bottles-87342_1920.jpg",
             isBefore: true,
           },
         ],
@@ -102,17 +112,35 @@ async function main() {
     },
   });
 
-  // Post 2: CLEANING in Charqueadas (response to Post 1)
-  const post2 = await prisma.posts.create({
+  // Post 2: ALERT post for cleaning pin (first post - establishes the problem)
+  const cleaningAlertPost = await prisma.posts.create({
+    data: {
+      type: PostTypes.ALERT,
+      text: "Massive trash accumulation blocking the drainage system. This needs immediate cleaning!",
+      userId: pinAdminReporter.id,
+      pinId: cleaningPin.id,
+      photos: {
+        create: [
+          {
+            url: "https://h2oglobalnews.com/wp-content/uploads/2021/08/bottles-87342_1920.jpg",
+            isBefore: true,
+          },
+        ],
+      },
+    },
+  });
+
+  // Post 3: CLEANING post (responds to the alert above)
+  const cleaningPost = await prisma.posts.create({
     data: {
       type: PostTypes.CLEANING,
-      text: "Successfully cleaned up the drain! Took about 2 hours. Much better now.",
-      userId: user1.id,
-      pinId: pinCharqueadas.id,
+      text: "Successfully cleaned up the entire area! Took 3 hours but the drainage is now clear.",
+      userId: pinSaoJeronimo.id,
+      pinId: cleaningPin.id,
       photos: {
         create: [
           {
-            url: "https://example.com/photo-charqueadas-after.jpg",
+            url: "https://www.ocregister.com/wp-content/uploads/2023/01/OCR-L-INLANDTRASH-0117-20.jpeg?w=1600&resize=1600,900",
             isBefore: false,
           },
         ],
@@ -120,40 +148,30 @@ async function main() {
     },
   });
 
-  // Post 3: BOTH in São Jerônimo
-  const post3 = await prisma.posts.create({
+  // Post 4: BOTH post (alert and cleaning in one)
+  const bothPost = await prisma.posts.create({
     data: {
       type: PostTypes.BOTH,
-      text: "Found some abandoned electronics (Alert), and I took a small part of it away (Cleaning). Still a lot left.",
-      userId: user2.id,
-      pinId: pinSaoJeronimo.id,
+      text: "Found trash problem and partially cleaned it. Before and after photos show the progress made.",
+      userId: pinSaoJeronimo.id,
+      pinId: bothPin.id,
       photos: {
         create: [
           {
-            url: "https://example.com/photo-saojeronimo-before-1.jpg",
+            url: "https://h2oglobalnews.com/wp-content/uploads/2021/08/bottles-87342_1920.jpg",
             isBefore: true,
           },
           {
-            url: "https://example.com/photo-saojeronimo-after-1.jpg",
+            url: "https://www.ocregister.com/wp-content/uploads/2023/01/OCR-L-INLANDTRASH-0117-20.jpeg?w=1600&resize=1600,900",
             isBefore: false,
           },
         ],
       },
-    },
-  });
-
-  // Post 4: ALERT in Charqueadas (Pin 2)
-  const post4 = await prisma.posts.create({
-    data: {
-      type: PostTypes.ALERT,
-      text: "Chemical spill near the industrial area. Needs urgent attention!",
-      userId: user3.id,
-      pinId: pinCharqueadas2.id,
     },
   });
 
   console.log(
-    `Created posts: ${post1.id}, ${post2.id}, ${post3.id}, ${post4.id}`
+    `Created posts: ${alertPost.id}, ${cleaningAlertPost.id}, ${cleaningPost.id}, ${bothPost.id}`
   );
 
   console.log(`Seeding finished.`);
