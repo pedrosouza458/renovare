@@ -1,58 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
-
-interface WaterwayData {
-  id: string;
-  name: string;
-  type: string;
-  coordinates: Array<{ lat: number; lng: number }>;
-}
+import type { 
+  WaterwayData, 
+  Location, 
+  GoogleMapInstance, 
+  GoogleMarkerInstance, 
+  GoogleMapMouseEvent 
+} from '../types';
+import { GOOGLE_MAPS_CONFIG, DEFAULT_LOCATION, DEFAULT_ZOOM } from '../constants';
 
 interface GoogleMapProps {
-  currentLocation: { lat: number; lng: number } | null;
+  currentLocation: Location | null;
   onLocationChange: (lat: number, lng: number) => void;
   waterways?: WaterwayData[];
-}
-
-// Minimal Google Maps types
-interface GoogleMapsAPI {
-  maps: {
-    Map: new (element: HTMLElement, options: unknown) => GoogleMap;
-    Marker: new (options: unknown) => GoogleMarker;
-    InfoWindow: new (options: unknown) => GoogleInfoWindow;
-    Size: new (width: number, height: number) => unknown;
-    Point: new (x: number, y: number) => unknown;
-    SymbolPath: { CIRCLE: number };
-    ControlPosition: { RIGHT_BOTTOM: number };
-  };
-}
-
-interface GoogleMap {
-  addListener: (event: string, callback: (e: GoogleMapMouseEvent) => void) => unknown;
-  setCenter: (location: { lat: number; lng: number }) => void;
-}
-
-interface GoogleMarker {
-  setMap: (map: GoogleMap | null) => void;
-  addListener: (event: string, callback: () => void) => void;
-}
-
-interface GoogleInfoWindow {
-  open: (map: GoogleMap, marker: GoogleMarker) => void;
-}
-
-interface GoogleMapMouseEvent {
-  latLng: {
-    lat: () => number;
-    lng: () => number;
-  };
-}
-
-declare global {
-  interface Window {
-    google?: GoogleMapsAPI;
-    initMap?: () => void;
-    googleMapsLoaded?: boolean;
-  }
 }
 
 export const GoogleMap: React.FC<GoogleMapProps> = ({ 
@@ -61,25 +20,23 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
   waterways = []
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<GoogleMap | null>(null);
-  const markersRef = useRef<GoogleMarker[]>([]);
+  const mapInstanceRef = useRef<GoogleMapInstance | null>(null);
+  const markersRef = useRef<GoogleMarkerInstance[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
 
-  const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+  const API_KEY = GOOGLE_MAPS_CONFIG.API_KEY;
 
   useEffect(() => {
     let isMounted = true;
     
     const initMap = () => {
       if (!window.google?.maps || !mapRef.current || !isMounted) {
-        console.warn('Google Maps initialization skipped: missing requirements');
         return;
       }
 
       // Ensure the map container element is properly attached to DOM
       if (!mapRef.current.isConnected) {
-        console.warn('Map container not connected to DOM, retrying...');
         setTimeout(() => {
           if (isMounted) initMap();
         }, 100);
@@ -87,10 +44,9 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
       }
 
       try {
-        console.log('Initializing Google Maps...');
         const map = new window.google.maps.Map(mapRef.current, {
-          center: { lat: -29.9577, lng: -51.6253 }, // Default: Charqueadas, RS, Brazil
-          zoom: 12,
+          center: DEFAULT_LOCATION,
+          zoom: DEFAULT_ZOOM,
           styles: [
             {
               featureType: 'water',
@@ -129,12 +85,10 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
         });
 
         if (isMounted) {
-          console.log('Google Maps initialized successfully');
           setIsLoaded(true);
           setLoadingError(null);
         }
       } catch (error) {
-        console.error('Error initializing Google Maps:', error);
         if (isMounted) {
           setLoadingError(`Failed to initialize Google Maps: ${error instanceof Error ? error.message : 'Unknown error'}`);
           setIsLoaded(false);
@@ -173,13 +127,12 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
         // Remove any existing scripts to avoid conflicts
         const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
         if (existingScript) {
-          console.log('GoogleMapSimple: Existing Maps script found, removing');
           existingScript.remove();
         }
 
         // Create new script
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}`;
+        script.src = `${GOOGLE_MAPS_CONFIG.SCRIPT_URL}?key=${API_KEY}`;
         script.async = true;
         script.defer = true;
         
@@ -189,9 +142,8 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
           }
         };
         
-        script.onerror = (event) => {
+        script.onerror = () => {
           if (isMounted) {
-            console.error('Google Maps API failed to load:', event);
             setLoadingError('Failed to load Google Maps API. This might be due to API key restrictions. Please check the console for more details.');
             setIsLoaded(false);
           }
@@ -200,9 +152,9 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
         // Listen for Google Maps API errors
         window.addEventListener('error', (event) => {
           if (event.message && event.message.includes('RefererNotAllowedMapError')) {
-            console.error('Google Maps RefererNotAllowedMapError detected');
             if (isMounted) {
-              setLoadingError(`Google Maps API key is restricted. Please add "http://localhost:5175" to your API key's allowed referrers in the Google Cloud Console.`);
+              const currentUrl = window.location.origin;
+              setLoadingError(`Google Maps API key is restricted. Please add "${currentUrl}" to your API key's allowed referrers in the Google Cloud Console.`);
             }
           }
         });
@@ -263,9 +215,8 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
     markersRef.current.forEach(marker => {
       try {
         marker.setMap(null);
-      } catch (error) {
+      } catch {
         // Ignore errors when removing markers
-        console.warn('Error removing marker:', error);
       }
     });
     markersRef.current = [];
@@ -307,9 +258,8 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
       markersRef.current.forEach(marker => {
         try {
           marker.setMap(null);
-        } catch (error) {
+        } catch {
           // Ignore cleanup errors
-          console.warn('Error during marker cleanup:', error);
         }
       });
     };
@@ -355,6 +305,39 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
               <h3 style={{ margin: '0 0 12px 0', color: '#ea4335', fontSize: '16px' }}>
                 {loadingError}
               </h3>
+              {loadingError.includes('restricted') && (
+                <div>
+                  <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#5f6368' }}>
+                    To fix this error:
+                  </p>
+                  <ol style={{ 
+                    textAlign: 'left', 
+                    fontSize: '12px', 
+                    color: '#5f6368',
+                    paddingLeft: '16px',
+                    margin: '8px 0'
+                  }}>
+                    <li>Go to <strong>console.cloud.google.com</strong></li>
+                    <li>Select your project</li>
+                    <li>Go to "APIs & Services" → "Credentials"</li>
+                    <li>Click on your API key</li>
+                    <li>Under "Website restrictions", add:</li>
+                  </ol>
+                  <code style={{ 
+                    background: '#f1f3f4', 
+                    padding: '8px 12px', 
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    display: 'block',
+                    margin: '8px 0'
+                  }}>
+                    {window.location.origin}/*
+                  </code>
+                  <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#5f6368' }}>
+                    Note: Add both localhost:5173 and localhost:5174 for development
+                  </p>
+                </div>
+              )}
               {API_KEY === '' && (
                 <div>
                   <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#5f6368' }}>
