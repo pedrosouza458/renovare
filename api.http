@@ -1,0 +1,134 @@
+###
+# Quick routes for manual testing (use REST Client or `http` extension)
+
+### List users
+GET http://localhost:3000/users
+Accept: application/json
+
+### Get user by id (replace :id with a real id from the list)
+GET http://localhost:3000/users/9fbf760a-be2a-4088-9b06-4284f47c8d2a
+Accept: application/json
+
+###
+POST http://localhost:3000/auth/login
+Accept: application/json
+Content-Type: application/json
+
+{
+  "email": "new.user@example.com",
+  "password": "supersecret"
+}
+
+### Register a new user (example)
+POST http://localhost:3000/users
+Accept: application/json
+Content-Type: application/json
+
+{
+  "username": "new_user",
+  "email": "new.user@example.com",
+  "password": "supersecret",
+  "points": 0
+}
+
+### Profile (protected) - replace {{token}} with the token returned from login
+GET http://localhost:3000/auth/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3MTZiMDM0OC03Yjg3LTQxZGUtOWNkZi1kMGQ3NzkxZjk1ZTMiLCJpYXQiOjE3NjEzNjQ5MDV9.3MrClrCRAb_BztemPsEdjgoRG0Y3LBVbKhDsUIcaexA
+Accept: application/json
+
+### Update current user (protected) — update fields on the authenticated user
+PUT http://localhost:3000/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3MTZiMDM0OC03Yjg3LTQxZGUtOWNkZi1kMGQ3NzkxZjk1ZTMiLCJpYXQiOjE3NjEzNjU3ODR9.vRSTQ9rkXMMAY-IcUzcUAG9HnlkSqJz7k8uB_axJLDE
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "updatedd_name",
+  "email": "updatedd.email@example.com",
+  "password": "newsecret",
+  "points": 10
+}
+
+### Update current user score (protected) — update fields on the authenticated user
+PUT http://localhost:3000/users/score
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiM2Y5OTA1Ny1mZTA2LTQ5NGQtYTQwNi02ODdkNDJiMzU1ZDciLCJpYXQiOjE3NjEzNzE2NjR9.6PQ0zs4jNa_IgtXje0BEkrGw_Dk4sFonMQgZmv-WqLY
+Content-Type: application/json
+Accept: application/json
+
+{
+  "score": 30
+}
+
+### Delete current user (protected)
+DELETE http://localhost:3000/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3MTZiMDM0OC03Yjg3LTQxZGUtOWNkZi1kMGQ3NzkxZjk1ZTMiLCJpYXQiOjE3NjEzNjU3ODR9.vRSTQ9rkXMMAY-IcUzcUAG9HnlkSqJz7k8uB_axJLDE
+Accept: application/json
+
+### Pins - quick examples
+
+### List pins
+GET http://localhost:3000/pins
+Accept: application/json
+
+### Get pin by id (replace {{pinId}} with a real id)
+GET http://localhost:3000/pins/c70df4a4-81d4-4897-8bbb-66336c370467
+Accept: application/json
+
+### Create a pin
+POST http://localhost:3000/pins
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiM2Y5OTA1Ny1mZTA2LTQ5NGQtYTQwNi02ODdkNDJiMzU1ZDciLCJpYXQiOjE3NjEzNjY5MDd9.E3oFsjsWAXiLvx4zwvRCGduD96QlMij1oBUAIM3Ec7I
+Content-Type: application/json
+Accept: application/json
+
+{
+  "latitude": -23.55052,
+  "longitude": -46.633308,
+  "lastActionSummary": "reported trash"
+}
+
+### Delete a pin (replace {{pinId}})
+DELETE http://localhost:3000/pins/34433c78-efa3-4c71-a007-21bdade28aea 
+Accept: application/json
+
+### Posts - examples
+
+### List posts
+GET http://localhost:3000/posts
+Accept: application/json
+
+### Get post by id
+GET http://localhost:3000/posts/6e316c67-f02b-4135-985b-48b4d4dd198c
+Accept: application/json
+
+### Create a post (protected) — include photo URLs inline
+POST http://localhost:3000/posts
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiM2Y5OTA1Ny1mZTA2LTQ5NGQtYTQwNi02ODdkNDJiMzU1ZDciLCJpYXQiOjE3NjEzNjg2MDJ9.GZBHHit-Mjo_d7rKDhpTpHjffAuCZB3P1syGjWW1Iso
+Content-Type: application/json
+Accept: application/json
+
+{
+  "type": "BOTH",
+  "text": "There is trash near the park",
+  "pinId": "c70df4a4-81d4-4897-8bbb-66336c370467",
+  "photos": [
+    { "url": "https://example.com/img1.jpg", "isBefore": true },
+    { "url": "https://example.com/img2.jpg", "isBefore": false }
+  ]
+}
+
+### Update a post (protected)
+PATCH http://localhost:3000/posts/{{postId}}
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiM2Y5OTA1Ny1mZTA2LTQ5NGQtYTQwNi02ODdkNDJiMzU1ZDciLCJpYXQiOjE3NjEzNjg2MDJ9.GZBHHit-Mjo_d7rKDhpTpHjffAuCZB3P1syGjWW1Iso
+Content-Type: application/json
+Accept: application/json
+
+{
+  "text": "Updated description",
+  "type": "CLEANING"
+}
+
+### Delete a post (protected)
+DELETE http://localhost:3000/posts/{{postId}}
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiM2Y5OTA1Ny1mZTA2LTQ5NGQtYTQwNi02ODdkNDJiMzU1ZDciLCJpYXQiOjE3NjEzNjg2MDJ9.GZBHHit-Mjo_d7rKDhpTpHjffAuCZB3P1syGjWW1Iso
+Accept: application/json
+

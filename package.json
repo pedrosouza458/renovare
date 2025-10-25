@@ -2,18 +2,28 @@
   "name": "hackathon-2025-projeto",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "npx tsx src/server.ts"
+    "dev": "npx tsx src/server.ts",
+    "seed": "npx tsx src/seed.ts",
+    "migrate": "dotenv -e .env -- npx prisma migrate dev --name init"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^24.9.1",
+    "dotenv-cli": "^10.0.0",
+    "prisma": "^6.18.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "fastify": "^5.6.1"
+    "@fastify/jwt": "^10.0.0",
+    "@prisma/client": "^6.18.0",
+    "bcryptjs": "^3.0.2",
+    "dotenv": "^17.2.3",
+    "fastify": "^5.6.1",
+    "zod": "^4.1.12"
   }
 }
