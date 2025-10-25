@@ -28,7 +28,9 @@ function App() {
   const handleWaterwayClick = useCallback((waterway: WaterwayData) => {
     if (waterway.coordinates.length > 0) {
       const firstPoint = waterway.coordinates[0];
-      setCurrentLocation({ lat: firstPoint.lat, lng: firstPoint.lng });
+      if (firstPoint) {
+        setCurrentLocation({ lat: firstPoint.lat, lng: firstPoint.lng });
+      }
     }
   }, []);
 

@@ -32,5 +32,5 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src"]
+  "include": ["src", "src/features", "src/lib", "src/plugins"]
 }

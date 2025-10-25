@@ -1,11 +1,15 @@
 # Dependencies
 node_modules/
+web/node_modules/
+server/node_modules/
 /.pnp
 .pnp.js
 
 # Production builds
 /dist
 /build
+web/dist/
+server/dist/
 
 # Environment variables
 .env
@@ -13,6 +17,7 @@ node_modules/
 .env.development.local
 .env.test.local
 .env.production.local
+server/.env
 
 # Runtime data
 pids
@@ -117,3 +122,5 @@ coverage
 /src/generated
 /generated/prisma
 /src/generated/prisma
+server/generated/
+server/node_modules/.prisma/
