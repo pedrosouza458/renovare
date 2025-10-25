@@ -28,6 +28,15 @@ const getPostTypeColor = (type: PostType): string => {
   }
 };
 
+const getPostTypeText = (type: PostType): string => {
+  switch (type) {
+    case 'alert': return 'Alerta';
+    case 'cleaning': return 'Limpo';
+    case 'both': return 'Alerta e Limpeza';
+    default: return type;
+  }
+};
+
 export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
   pinpoint,
   onClose,
@@ -479,7 +488,7 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
                       className="post-type"
                       style={{ color: getPostTypeColor(post.type) }}
                     >
-                      {getPostTypeIcon(post.type)} {post.type}
+                      {getPostTypeIcon(post.type)} {getPostTypeText(post.type)}
                     </span>
                     <span className="post-date">
                       {new Date(post.createdAt).toLocaleDateString()}

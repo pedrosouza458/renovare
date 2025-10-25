@@ -16,6 +16,18 @@ async function main() {
   // Hash passwords for test users
   const testPassword = await bcrypt.hash("test123", 10);
 
+    const defaultUser = await prisma.users.upsert({
+    where: { username: "Teste" },
+    update: {},
+    create: {
+      username: "Teste",
+      email: "teste@gmail.com",
+      cpf: "295.640.670-14", // Valid CPF for testing
+      password: testPassword, // Properly hashed password: "test123"
+      points: 150,
+    },
+  });
+
   // --- 1. Create Users ---
   const pinCharqueadas = await prisma.users.upsert({
     where: { username: "charqueadas_user" },

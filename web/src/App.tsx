@@ -162,7 +162,7 @@ function App() {
       <ProfileButton className="profile-button-positioned" />
 
       {/* Loading indicator */}
-      {loading && <LoadingSpinner message="Procurando cursos d'água..." />}
+      {loading && <LoadingSpinner message="Carregando..." />}
       
       {/* Error indicator */}
       {error && <ErrorIndicator message={error} />}
