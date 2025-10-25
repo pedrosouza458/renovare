@@ -9,7 +9,6 @@ import {
 import { getUserById } from "./use-cases/get-user-by-id";
 import { prisma } from "../../lib/prisma";
 import { registerUser } from "./use-cases/register-user";
-import { updateUser } from "./use-cases/update-user";
 import { deleteUser } from "./use-cases/delete-user";
 
 export async function getUsersHandler(
@@ -70,27 +69,6 @@ export async function getUserByIdHandler(
   } catch (error) {
     console.log("Get Users Error: ", error);
     return reply.status(500).send({ message: "Internal Server Error" });
-  }
-}
-
-export async function updateUserHandler(
-  request: FastifyRequest,
-  reply: FastifyReply
-) {
-  try {
-    const anyReq: any = request;
-    const userId: string | undefined = anyReq.user?.userId;
-    if (!userId) return reply.status(401).send({ error: "Unauthorized" });
-
-    const parsed = updateUserBodySchema.parse(request.body);
-
-    const user = await updateUser(prisma, userId, parsed as any);
-    const validated = userResponseSchema.parse(user);
-
-    return reply.status(200).send(validated);
-  } catch (err: any) {
-    const message = err?.message ?? "Internal Server Error";
-    return reply.status(400).send({ error: message });
   }
 }
 

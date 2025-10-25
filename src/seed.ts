@@ -1,6 +1,5 @@
-import { prisma } from "./lib/prisma";
 import { PostTypes } from "@prisma/client";
-
+import { prisma } from "./lib/prisma";
 async function main() {
   console.log(`Start seeding ...`);
 

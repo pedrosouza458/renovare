@@ -53,3 +53,29 @@ Accept: application/json
 DELETE http://localhost:3000/users
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3MTZiMDM0OC03Yjg3LTQxZGUtOWNkZi1kMGQ3NzkxZjk1ZTMiLCJpYXQiOjE3NjEzNjU3ODR9.vRSTQ9rkXMMAY-IcUzcUAG9HnlkSqJz7k8uB_axJLDE
 Accept: application/json
+
+### Pins - quick examples
+
+### List pins
+GET http://localhost:3000/pins
+Accept: application/json
+
+### Get pin by id (replace {{pinId}} with a real id)
+GET http://localhost:3000/pins/34433c78-efa3-4c71-a007-21bdade28aea
+Accept: application/json
+
+### Create a pin
+POST http://localhost:3000/pins
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiM2Y5OTA1Ny1mZTA2LTQ5NGQtYTQwNi02ODdkNDJiMzU1ZDciLCJpYXQiOjE3NjEzNjY5MDd9.E3oFsjsWAXiLvx4zwvRCGduD96QlMij1oBUAIM3Ec7I
+Content-Type: application/json
+Accept: application/json
+
+{
+  "latitude": -23.55052,
+  "longitude": -46.633308,
+  "lastActionSummary": "reported trash"
+}
+
+### Delete a pin (replace {{pinId}})
+DELETE http://localhost:3000/pins/34433c78-efa3-4c71-a007-21bdade28aea 
+Accept: application/json
