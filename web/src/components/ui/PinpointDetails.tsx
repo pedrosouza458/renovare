@@ -436,11 +436,14 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
           {!pinpoint.posts || pinpoint.posts.length === 0 ? (
             <p className="no-posts">No posts yet. Add the first one!</p>
           ) : (
-            pinpoint.posts.map((post) => (
+            pinpoint.posts.map((post) => {
+              const photoClass = post.photos && post.photos.length === 1 ? 'single-photo' : 'dual-photos';
+              
+              return (
               <div key={post.id} className="post-item">
                 {/* Photos at the top, full width */}
                 {post.photos && post.photos.length > 0 && (
-                  <div className={`post-photos ${post.photos.length === 1 ? 'single-photo' : 'dual-photos'}`}>
+                  <div className={`post-photos ${photoClass}`}>
                     {post.photos.map((photo, idx) => (
                       <div key={photo.id || idx} className="post-photo">
                         <img
@@ -450,10 +453,7 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
                         />
                         {post.photos.length > 1 && (
                           <div className="photo-counter">
-                            {post.type === 'both' 
-                              ? (idx === 0 ? 'Before' : 'After')
-                              : `${idx + 1}/${post.photos.length}`
-                            }
+                            {idx + 1}/{post.photos.length}
                           </div>
                         )}
                       </div>
@@ -477,7 +477,8 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
                   <p className="post-text">{post.text}</p>
                 </div>
               </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
