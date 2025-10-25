@@ -50,19 +50,10 @@ interface BackendPinpoint {
 const mapPinpointFromBackend = (backendPinpoint: BackendPinpoint): Pinpoint => {
   return {
     ...backendPinpoint,
-    posts: backendPinpoint.posts?.map((post: BackendPost) => {
-      // Parse title and description from text field
-      const textParts = post.text?.split('\n\n') || [];
-      const title = textParts[0] || '';
-      const description = textParts.slice(1).join('\n\n') || '';
-      
-      return {
-        ...post,
-        type: mapPostTypeFromBackend(post.type),
-        title,
-        description
-      };
-    }) || []
+    posts: backendPinpoint.posts?.map((post: BackendPost) => ({
+      ...post,
+      type: mapPostTypeFromBackend(post.type)
+    })) || []
   };
 };
 
@@ -75,19 +66,19 @@ export const pinpointService = {
   async createPinpointWithPost(
     latitude: number, 
     longitude: number, 
-    postData: { type: PostType; title: string; description: string }
+    postData: { type: PostType; text: string }
   ): Promise<Pinpoint> {
     // First create the pinpoint
     const newPinpoint = await pinService.createPin({
       latitude,
       longitude,
-      lastActionSummary: postData.title
+      lastActionSummary: postData.text.substring(0, 100) // Use first 100 chars as summary
     });
 
     // Then create the post associated with the pinpoint
     const createPostPayload: CreatePostData = {
       type: mapPostTypeToBackend(postData.type) as 'ALERT' | 'CLEANING' | 'BOTH',
-      text: `${postData.title}\n\n${postData.description}`,
+      text: postData.text,
       pinId: newPinpoint.id
     };
 
@@ -102,13 +93,14 @@ export const pinpointService = {
 
   async addPostToPinpoint(
     pinpointId: string, 
-    postData: { type: PostType; title: string; description: string }
+    postData: { type: PostType; text: string; photos?: Array<{ url: string; isBefore?: boolean }> }
   ): Promise<Pinpoint> {
-    // Create the post with combined title and description
+    // Create the post with the text directly
     const createPostPayload: CreatePostData = {
       type: mapPostTypeToBackend(postData.type) as 'ALERT' | 'CLEANING' | 'BOTH',
-      text: `${postData.title}\n\n${postData.description}`,
-      pinId: pinpointId
+      text: postData.text,
+      pinId: pinpointId,
+      photos: postData.photos && postData.photos.length > 0 ? postData.photos : undefined
     };
 
     await postService.createPost(createPostPayload);

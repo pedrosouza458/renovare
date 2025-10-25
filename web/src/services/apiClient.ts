@@ -59,7 +59,17 @@ export class ApiClient {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const error: ApiError = new Error(`HTTP error! status: ${response.status}`);
+        // Try to get error details from response body
+        let errorDetails = '';
+        try {
+          const errorBody = await response.text();
+          errorDetails = errorBody;
+          console.error('API Error Details:', errorDetails);
+        } catch {
+          console.error('Could not parse error response');
+        }
+        
+        const error: ApiError = new Error(`HTTP error! status: ${response.status}${errorDetails ? ` - ${errorDetails}` : ''}`);
         error.status = response.status;
         error.statusText = response.statusText;
         throw error;

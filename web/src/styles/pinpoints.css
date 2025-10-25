@@ -601,10 +601,64 @@
   }
 }
 
+/* Post Photos Styling */
+.post-photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  margin-bottom: 8px;
+  padding: 8px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.post-photo {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.post-photo:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+.post-photo img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  display: block;
+}
+
+.photo-counter {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(0,0,0,0.7);
+  color: white;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 500;
+  pointer-events: none;
+}
+
 /* Small mobile screens */
 @media (max-width: 480px) {
   .profile-button-positioned {
     top: 12px !important;
     left: 12px !important;
+  }
+  
+  .post-photo img {
+    width: 80px;
+    height: 80px;
   }
 }

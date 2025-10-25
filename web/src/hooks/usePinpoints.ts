@@ -30,7 +30,7 @@ export const usePinpoints = () => {
   const createPinpointWithPost = useCallback(async (
     latitude: number, 
     longitude: number, 
-    postData: { type: PostType; title: string; description: string }
+    postData: { type: PostType; text: string }
   ): Promise<Pinpoint> => {
     setLoading(true);
     setError(null);
@@ -46,7 +46,16 @@ export const usePinpoints = () => {
       
       return newPinpoint;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create pinpoint';
+      let errorMessage = 'Failed to create pinpoint';
+      
+      if (err instanceof Error) {
+        if (err.message.includes('409')) {
+          errorMessage = 'A pinpoint already exists nearby (within 50 meters). Please choose a different location or add a post to the existing pinpoint.';
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
       setError(errorMessage);
       console.error('Error creating pinpoint:', err);
       throw err; // Re-throw so calling component can handle it
@@ -57,12 +66,12 @@ export const usePinpoints = () => {
 
   const addPostToPinpoint = useCallback(async (
     pinpointId: string, 
-    postData: { type: PostType; title: string; description: string }
+    postData: { type: PostType; text: string; photos?: Array<{ url: string }> }
   ): Promise<boolean> => {
     setLoading(true);
     setError(null);
     try {
-      const updatedPinpoint = await pinpointService.addPostToPinpoint(pinpointId, postData);
+  const updatedPinpoint = await pinpointService.addPostToPinpoint(pinpointId, postData);
       
       // Update local state
       setPinpoints(prev => 

@@ -5,14 +5,17 @@ export const postPhotoSchema = z.object({
   id: z
     .preprocess((v) => (typeof v === "string" ? v : String(v)), z.string())
     .optional(),
-  url: z.string().url(),
+  url: z.string().refine((val) => {
+    // Allow both regular URLs and data URLs
+    return val.startsWith('http') || val.startsWith('https') || val.startsWith('data:');
+  }, { message: "Must be a valid URL or data URL" }),
   isBefore: z.boolean().optional(),
 });
 
 export const createPostBodySchema = z.object({
   type: z.nativeEnum(PostTypes),
   text: z.string().optional(),
-  pinId: z.string().uuid(),
+  pinId: z.string(),
   photos: z.array(postPhotoSchema).optional(),
 });
 

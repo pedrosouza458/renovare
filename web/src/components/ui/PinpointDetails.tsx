@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Pinpoint, PostType } from '../../types';
+import type { PostPhoto } from '../../types/pinpoint';
+import { compressImage, validateImageFile } from '../../utils/imageUtils';
 
 interface PinpointDetailsProps {
   pinpoint: Pinpoint;
   onClose: () => void;
-  onAddPost: (pinpointId: string, postData: { type: PostType; title: string; description: string }) => Promise<boolean>;
+  onAddPost: (pinpointId: string, postData: { type: PostType; text: string; photos?: PostPhoto[] }) => Promise<boolean>;
   onDelete: (pinpointId: string) => Promise<boolean>;
 }
 
@@ -35,9 +37,14 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [newPost, setNewPost] = useState({
     type: 'alert' as PostType,
-    title: '',
-    description: ''
+    text: '',
+    photos: [] as PostPhoto[]
   });
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [isAddingPhoto, setIsAddingPhoto] = useState(false);
+  const [photoInputMethod, setPhotoInputMethod] = useState<'file' | 'url'>('file');
+  const [photoUrl, setPhotoUrl] = useState('');
+  const [selectedPhoto, setSelectedPhoto] = useState<{ url: string; index: number; photos: PostPhoto[] } | null>(null);
 
   // Check if cleaning posts are allowed
   const hasAlertOrBoth = pinpoint.posts?.some(post => 
@@ -53,18 +60,67 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
   };
 
   const handleAddPost = async () => {
-    if (!newPost.title.trim() || !newPost.description.trim()) return;
+    if (!newPost.text.trim()) return;
     
     try {
       const success = await onAddPost(pinpoint.id, newPost);
       if (success) {
-        setNewPost({ type: 'alert', title: '', description: '' });
+        setNewPost({ type: 'alert', text: '', photos: [] });
+        setPhotoPreview(null);
+        setPhotoUrl('');
+        setIsAddingPhoto(false);
         setShowAddForm(false);
       }
     } catch (error) {
-      // Handle the business rule error from the service
       alert(error instanceof Error ? error.message : 'Failed to add post. Please try again.');
     }
+  };
+
+  const handlePhotoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file
+    const validationError = validateImageFile(file);
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
+
+    // Compress and preview
+    compressImage(file, { maxSizeKB: 400 })
+      .then(compressedDataUrl => {
+        setPhotoPreview(compressedDataUrl);
+      })
+      .catch(error => {
+        console.error('Image compression failed:', error);
+        alert('Failed to process image. Please try a different image.');
+      });
+  };
+
+  const handleAddPhoto = () => {
+    if (photoInputMethod === 'url' && photoUrl.trim()) {
+      setNewPost(prev => ({
+        ...prev,
+        photos: [...prev.photos, { url: photoUrl.trim(), isBefore: false }]
+      }));
+      setPhotoUrl('');
+      setIsAddingPhoto(false);
+    } else if (photoInputMethod === 'file' && photoPreview) {
+      setNewPost(prev => ({
+        ...prev,
+        photos: [...prev.photos, { url: photoPreview, isBefore: false }]
+      }));
+      setPhotoPreview(null);
+      setIsAddingPhoto(false);
+    }
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setNewPost(prev => ({
+      ...prev,
+      photos: prev.photos.filter((_, i) => i !== index)
+    }));
   };
 
   const handleDelete = async () => {
@@ -75,6 +131,39 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
       }
     }
   };
+
+  // Keyboard navigation for photo modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!selectedPhoto) return;
+      
+      if (e.key === 'Escape') {
+        setSelectedPhoto(null);
+      } else if (e.key === 'ArrowLeft' && selectedPhoto.photos.length > 1) {
+        const newIndex = selectedPhoto.index > 0 ? selectedPhoto.index - 1 : selectedPhoto.photos.length - 1;
+        setSelectedPhoto({
+          ...selectedPhoto,
+          index: newIndex,
+          url: selectedPhoto.photos[newIndex].url
+        });
+      } else if (e.key === 'ArrowRight' && selectedPhoto.photos.length > 1) {
+        const newIndex = selectedPhoto.index < selectedPhoto.photos.length - 1 ? selectedPhoto.index + 1 : 0;
+        setSelectedPhoto({
+          ...selectedPhoto,
+          index: newIndex,
+          url: selectedPhoto.photos[newIndex].url
+        });
+      }
+    };
+
+    if (selectedPhoto) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedPhoto]);
 
   return (
     <div className="pinpoint-details">
@@ -132,21 +221,161 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
             )}
             <input
               type="text"
-              placeholder="Post title..."
-              value={newPost.title}
-              onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
+              placeholder="Post content..."
+              value={newPost.text}
+              onChange={(e) => setNewPost({ ...newPost, text: e.target.value })}
             />
-            <textarea
-              placeholder="Post description..."
-              value={newPost.description}
-              onChange={(e) => setNewPost({ ...newPost, description: e.target.value })}
-              rows={3}
-            />
+            {/* Photos section */}
+            <div className="form-group">
+              <label>Photos (optional)</label>
+              {newPost.photos.length > 0 && (
+                <div className="photo-thumbs" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+                  {newPost.photos.map((p, idx) => (
+                    <div key={idx} style={{ position: 'relative' }}>
+                      <img
+                        src={p.url}
+                        alt={`Post photo ${idx + 1}`}
+                        style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8, border: '1px solid #e2e8f0' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemovePhoto(idx)}
+                        style={{
+                          position: 'absolute', top: -6, right: -6, background: '#f56565', color: 'white',
+                          border: 'none', width: 22, height: 22, borderRadius: '50%', cursor: 'pointer', fontSize: 12,
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                        }}
+                        aria-label={`Remove photo ${idx + 1}`}
+                      >×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {!isAddingPhoto && (
+                <button
+                  type="button"
+                  className="add-photo-trigger"
+                  onClick={() => setIsAddingPhoto(true)}
+                  style={{
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%)',
+                    color: 'white', border: 'none', padding: '8px 14px', borderRadius: 8,
+                    cursor: 'pointer', fontSize: 14, fontWeight: 500
+                  }}
+                >+ Add Photo</button>
+              )}
+              {isAddingPhoto && (
+                <div className="photo-uploader" style={{ marginTop: 8 }}>
+                  {/* Method selector */}
+                  <div style={{ marginBottom: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => setPhotoInputMethod('file')}
+                      style={{
+                        background: photoInputMethod === 'file' ? '#3b82f6' : '#f3f4f6',
+                        color: photoInputMethod === 'file' ? 'white' : '#374151',
+                        border: 'none',
+                        padding: '6px 12px',
+                        borderRadius: '6px 0 0 6px',
+                        cursor: 'pointer',
+                        fontSize: 14
+                      }}
+                    >Upload File</button>
+                    <button
+                      type="button"
+                      onClick={() => setPhotoInputMethod('url')}
+                      style={{
+                        background: photoInputMethod === 'url' ? '#3b82f6' : '#f3f4f6',
+                        color: photoInputMethod === 'url' ? 'white' : '#374151',
+                        border: 'none',
+                        padding: '6px 12px',
+                        borderRadius: '0 6px 6px 0',
+                        cursor: 'pointer',
+                        fontSize: 14
+                      }}
+                    >Photo URL</button>
+                  </div>
+
+                  {photoInputMethod === 'file' ? (
+                    <>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoFileChange}
+                      />
+                      {photoPreview && (
+                        <div style={{ marginTop: 8 }}>
+                          <img
+                            src={photoPreview}
+                            alt="Preview"
+                            style={{ maxWidth: '100%', maxHeight: 160, borderRadius: 12, border: '1px solid #e2e8f0' }}
+                          />
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div>
+                      <input
+                        type="url"
+                        placeholder="Enter image URL (https://...)"
+                        value={photoUrl}
+                        onChange={(e) => setPhotoUrl(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: 8,
+                          fontSize: 14
+                        }}
+                      />
+                      {photoUrl && (
+                        <div style={{ marginTop: 8 }}>
+                          <img
+                            src={photoUrl}
+                            alt="URL Preview"
+                            style={{ maxWidth: '100%', maxHeight: 160, borderRadius: 12, border: '1px solid #e2e8f0' }}
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling!.textContent = 'Invalid image URL';
+                            }}
+                          />
+                          <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}></div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {((photoInputMethod === 'file' && photoPreview) || (photoInputMethod === 'url' && photoUrl.trim())) && (
+                    <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                      <button
+                        type="button"
+                        onClick={handleAddPhoto}
+                        style={{
+                          background: '#10b981', color: 'white', border: 'none', padding: '8px 14px',
+                          borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 500
+                        }}
+                      >Confirm</button>
+                      <button
+                        type="button"
+                        onClick={() => { 
+                          setPhotoPreview(null); 
+                          setPhotoUrl(''); 
+                          setIsAddingPhoto(false); 
+                        }}
+                        style={{
+                          background: '#f56565', color: 'white', border: 'none', padding: '8px 14px',
+                          borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 500
+                        }}
+                      >Cancel</button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             <div className="form-actions">
               <button 
                 className="save-btn"
                 onClick={handleAddPost}
-                disabled={!newPost.title.trim() || !newPost.description.trim()}
+                disabled={!newPost.text.trim()}
               >
                 Save Post
               </button>
@@ -171,13 +400,172 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
                     {new Date(post.createdAt).toLocaleDateString()}
                   </span>
                 </div>
-                <h5 className="post-title">{post.title}</h5>
-                <p className="post-description">{post.description}</p>
+                <p className="post-text">{post.text}</p>
+                {post.photos && post.photos.length > 0 && (
+                  <div className="post-photos">
+                    {post.photos.map((photo, idx) => (
+                      <div key={photo.id || idx} className="post-photo">
+                        <img
+                          src={photo.url}
+                          alt={`Post photo ${idx + 1}`}
+                          onClick={() => setSelectedPhoto({ url: photo.url, index: idx, photos: post.photos })}
+                        />
+                        {post.photos.length > 1 && (
+                          <div className="photo-counter">
+                            {idx + 1}/{post.photos.length}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))
           )}
         </div>
       </div>
+
+      {/* Photo Modal */}
+      {selectedPhoto && (
+        <div 
+          className="photo-modal-overlay" 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: 20
+          }}
+          onClick={() => setSelectedPhoto(null)}
+        >
+          <div 
+            className="photo-modal-content"
+            style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setSelectedPhoto(null)}
+              style={{
+                position: 'absolute',
+                top: -40,
+                right: 0,
+                background: 'rgba(255, 255, 255, 0.9)',
+                border: 'none',
+                borderRadius: '50%',
+                width: 32,
+                height: 32,
+                cursor: 'pointer',
+                fontSize: 18,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1001
+              }}
+              title="Close"
+            >×</button>
+
+            {/* Navigation arrows */}
+            {selectedPhoto.photos.length > 1 && (
+              <>
+                <button
+                  onClick={() => {
+                    const newIndex = selectedPhoto.index > 0 ? selectedPhoto.index - 1 : selectedPhoto.photos.length - 1;
+                    setSelectedPhoto({
+                      ...selectedPhoto,
+                      index: newIndex,
+                      url: selectedPhoto.photos[newIndex].url
+                    });
+                  }}
+                  style={{
+                    position: 'absolute',
+                    left: -50,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: 40,
+                    height: 40,
+                    cursor: 'pointer',
+                    fontSize: 20,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  title="Previous photo"
+                >‹</button>
+
+                <button
+                  onClick={() => {
+                    const newIndex = selectedPhoto.index < selectedPhoto.photos.length - 1 ? selectedPhoto.index + 1 : 0;
+                    setSelectedPhoto({
+                      ...selectedPhoto,
+                      index: newIndex,
+                      url: selectedPhoto.photos[newIndex].url
+                    });
+                  }}
+                  style={{
+                    position: 'absolute',
+                    right: -50,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: 40,
+                    height: 40,
+                    cursor: 'pointer',
+                    fontSize: 20,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  title="Next photo"
+                >›</button>
+              </>
+            )}
+
+            {/* Main image */}
+            <img
+              src={selectedPhoto.url}
+              alt={`Photo ${selectedPhoto.index + 1} of ${selectedPhoto.photos.length}`}
+              style={{
+                maxWidth: '100%',
+                maxHeight: '100%',
+                objectFit: 'contain',
+                borderRadius: 8,
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
+              }}
+            />
+
+            {/* Photo counter */}
+            {selectedPhoto.photos.length > 1 && (
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: -35,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  padding: '4px 8px',
+                  borderRadius: 4,
+                  fontSize: 12,
+                  color: '#333'
+                }}
+              >
+                {selectedPhoto.index + 1} of {selectedPhoto.photos.length}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -8,7 +8,8 @@ import { useWaterways } from './hooks/useWaterways';
 import { usePinpoints } from './hooks/usePinpoints';
 import { useAuth } from './hooks/useAuth';
 import type { WaterwayData, Location } from './types';
-import type { Pinpoint, PostType } from './types/pinpoint';
+import { findNearbyPinpoints, formatDistance } from './utils/locationUtils';
+import type { PostType, Pinpoint } from './types';
 import { DEFAULT_LOCATION } from './constants';
 
 function App() {
@@ -54,7 +55,7 @@ function App() {
     }
   }, [isAddingPinpoint, fetchWaterways]);
 
-  const handleCreatePinpoint = useCallback(async (postData: { type: PostType; title: string; description: string }) => {
+  const handleCreatePinpoint = useCallback(async (postData: { type: PostType; text: string }) => {
     if (createFormLocation) {
       try {
         const newPinpoint = await createPinpointWithPost(
@@ -67,11 +68,34 @@ function App() {
         setShowCreateForm(false);
         setCreateFormLocation(null);
       } catch (error) {
-        // Handle business rule errors
+        // Handle 409 conflict with better UX
+        if (error instanceof Error && error.message.includes('409')) {
+          const nearby = findNearbyPinpoints(
+            createFormLocation.lat, 
+            createFormLocation.lng, 
+            pinpoints, 
+            100
+          );
+          
+          if (nearby.length > 0) {
+            const closest = nearby[0];
+            const message = `A pinpoint already exists ${formatDistance(closest.distance)} away. Would you like to add your post to that pinpoint instead?`;
+            
+            if (window.confirm(message)) {
+              setSelectedPinpoint(closest);
+              setIsPinpointsPanelOpen(true);
+              setShowCreateForm(false);
+              setCreateFormLocation(null);
+              return;
+            }
+          }
+        }
+        
+        // Show error message
         alert(error instanceof Error ? error.message : 'Failed to create pinpoint. Please try again.');
       }
     }
-  }, [createFormLocation, createPinpointWithPost]);
+  }, [createFormLocation, createPinpointWithPost, pinpoints]);
 
   const handleCancelCreate = useCallback(() => {
     setShowCreateForm(false);

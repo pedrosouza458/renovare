@@ -52,11 +52,8 @@ async function main() {
   // --- 2. Create Pins (Locations) ---
 
   // Pin in Charqueadas (Approx. -29.955, -51.625)
-  const pinCharqueadas = await prisma.pins.upsert({
-    where: { id: "charqueadas-pin-1" }, // Using a custom ID for predictable seeding
-    update: { lastActionSummary: "Reported an alert and a cleaning post" },
-    create: {
-      id: "charqueadas-pin-1",
+  const pinCharqueadas = await prisma.pins.create({
+    data: {
       latitude: -29.955,
       longitude: -51.625,
       lastActionSummary: "Needs cleaning (Alert and Cleaning)",
@@ -64,11 +61,8 @@ async function main() {
   });
 
   // Pin in São Jerônimo (Approx. -29.959, -51.722)
-  const pinSaoJeronimo = await prisma.pins.upsert({
-    where: { id: "sao-jeronimo-pin-1" },
-    update: { lastActionSummary: "Reported an alert and a cleaning post" },
-    create: {
-      id: "sao-jeronimo-pin-1",
+  const pinSaoJeronimo = await prisma.pins.create({
+    data: {
       latitude: -29.959,
       longitude: -51.722,
       lastActionSummary: "Hazard reported (Alert)",
@@ -76,11 +70,8 @@ async function main() {
   });
 
   // Another Pin in Charqueadas (slightly different location)
-  const pinCharqueadas2 = await prisma.pins.upsert({
-    where: { id: "charqueadas-pin-2" },
-    update: { lastActionSummary: "Alert reported by admin" },
-    create: {
-      id: "charqueadas-pin-2",
+  const pinCharqueadas2 = await prisma.pins.create({
+    data: {
       latitude: -29.96,
       longitude: -51.63,
       lastActionSummary: "Alert reported by admin",

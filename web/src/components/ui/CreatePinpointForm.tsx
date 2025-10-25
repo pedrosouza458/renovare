@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { AuthModal } from './AuthModal';
-import type { PostType } from '../../types/pinpoint';
+import type { PostType, PostPhoto } from '../../types/pinpoint';
+import { compressImage, validateImageFile } from '../../utils/imageUtils';
 
 interface CreatePinpointFormProps {
   latitude: number;
   longitude: number;
-  onSubmit: (postData: { type: PostType; title: string; description: string }) => void;
+  onSubmit: (postData: { type: PostType; text: string; photos: PostPhoto[] }) => void;
   onCancel: () => void;
 }
 
@@ -20,9 +21,60 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [postData, setPostData] = useState({
     type: 'alert' as PostType,
-    title: '',
-    description: ''
+    text: '',
+    photos: [] as PostPhoto[]
   });
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [isAddingPhoto, setIsAddingPhoto] = useState(false);
+  const [photoInputMethod, setPhotoInputMethod] = useState<'file' | 'url'>('file');
+  const [photoUrl, setPhotoUrl] = useState('');
+
+  const handlePhotoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file
+    const validationError = validateImageFile(file);
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
+
+    // Compress and preview
+    compressImage(file, { maxSizeKB: 400 })
+      .then(compressedDataUrl => {
+        setPhotoPreview(compressedDataUrl);
+      })
+      .catch(error => {
+        console.error('Image compression failed:', error);
+        alert('Failed to process image. Please try a different image.');
+      });
+  };
+
+  const handleAddPhoto = () => {
+    if (photoInputMethod === 'url' && photoUrl.trim()) {
+      setPostData(prev => ({
+        ...prev,
+        photos: [...prev.photos, { url: photoUrl.trim(), isBefore: false }]
+      }));
+      setPhotoUrl('');
+      setIsAddingPhoto(false);
+    } else if (photoInputMethod === 'file' && photoPreview) {
+      setPostData(prev => ({
+        ...prev,
+        photos: [...prev.photos, { url: photoPreview, isBefore: false }]
+      }));
+      setPhotoPreview(null);
+      setIsAddingPhoto(false);
+    }
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    setPostData(prev => ({
+      ...prev,
+      photos: prev.photos.filter((_, i) => i !== index)
+    }));
+  };
 
   const handleTypeChange = (newType: PostType) => {
     // Prevent selection of cleaning for first post
@@ -36,7 +88,7 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
     e.preventDefault();
     
     // Validation: ensure required fields are filled
-    if (!postData.title.trim() || !postData.description.trim()) return;
+    if (!postData.text.trim()) return;
     
     // Business rule validation: first post cannot be cleaning
     if (postData.type === 'cleaning') {
@@ -44,7 +96,7 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
       return;
     }
     
-    onSubmit(postData);
+  onSubmit(postData);
   };
 
   return (
@@ -120,27 +172,162 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
           </div>
 
           <div className="form-group">
-            <label htmlFor="post-title">Post Title</label>
-            <input
-              id="post-title"
-              type="text"
-              placeholder="Enter post title..."
-              value={postData.title}
-              onChange={(e) => setPostData({ ...postData, title: e.target.value })}
+            <label htmlFor="post-text">Post Content</label>
+            <textarea
+              id="post-text"
+              placeholder="Enter post content..."
+              value={postData.text}
+              onChange={(e) => setPostData({ ...postData, text: e.target.value })}
+              rows={4}
               required
             />
           </div>
 
+          {/* Photo upload section */}
           <div className="form-group">
-            <label htmlFor="post-description">Description</label>
-            <textarea
-              id="post-description"
-              placeholder="Enter post description..."
-              value={postData.description}
-              onChange={(e) => setPostData({ ...postData, description: e.target.value })}
-              rows={3}
-              required
-            />
+            <label>Photos (optional)</label>
+            {postData.photos.length > 0 && (
+              <div className="photo-thumbs" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
+                {postData.photos.map((p, idx) => (
+                  <div key={idx} style={{ position: 'relative' }}>
+                    <img
+                      src={p.url}
+                      alt={`Post photo ${idx + 1}`}
+                      style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8, border: '1px solid #e2e8f0' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemovePhoto(idx)}
+                      style={{
+                        position: 'absolute', top: -6, right: -6, background: '#f56565', color: 'white',
+                        border: 'none', width: 22, height: 22, borderRadius: '50%', cursor: 'pointer', fontSize: 12,
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                      }}
+                      aria-label={`Remove photo ${idx + 1}`}
+                    >×</button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {!isAddingPhoto && (
+              <button
+                type="button"
+                className="add-photo-trigger"
+                onClick={() => setIsAddingPhoto(true)}
+                style={{
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%)',
+                  color: 'white', border: 'none', padding: '8px 14px', borderRadius: 8,
+                  cursor: 'pointer', fontSize: 14, fontWeight: 500
+                }}
+              >+ Add Photo</button>
+            )}
+            {isAddingPhoto && (
+              <div className="photo-uploader" style={{ marginTop: 8 }}>
+                {/* Method selector */}
+                <div style={{ marginBottom: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => setPhotoInputMethod('file')}
+                    style={{
+                      background: photoInputMethod === 'file' ? '#3b82f6' : '#f3f4f6',
+                      color: photoInputMethod === 'file' ? 'white' : '#374151',
+                      border: 'none',
+                      padding: '6px 12px',
+                      borderRadius: '6px 0 0 6px',
+                      cursor: 'pointer',
+                      fontSize: 14
+                    }}
+                  >Upload File</button>
+                  <button
+                    type="button"
+                    onClick={() => setPhotoInputMethod('url')}
+                    style={{
+                      background: photoInputMethod === 'url' ? '#3b82f6' : '#f3f4f6',
+                      color: photoInputMethod === 'url' ? 'white' : '#374151',
+                      border: 'none',
+                      padding: '6px 12px',
+                      borderRadius: '0 6px 6px 0',
+                      cursor: 'pointer',
+                      fontSize: 14
+                    }}
+                  >Photo URL</button>
+                </div>
+
+                {photoInputMethod === 'file' ? (
+                  <>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoFileChange}
+                    />
+                    {photoPreview && (
+                      <div style={{ marginTop: 8 }}>
+                        <img
+                          src={photoPreview}
+                          alt="Preview"
+                          style={{ maxWidth: '100%', maxHeight: 160, borderRadius: 12, border: '1px solid #e2e8f0' }}
+                        />
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div>
+                    <input
+                      type="url"
+                      placeholder="Enter image URL (https://...)"
+                      value={photoUrl}
+                      onChange={(e) => setPhotoUrl(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '8px 12px',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: 8,
+                        fontSize: 14
+                      }}
+                    />
+                    {photoUrl && (
+                      <div style={{ marginTop: 8 }}>
+                        <img
+                          src={photoUrl}
+                          alt="URL Preview"
+                          style={{ maxWidth: '100%', maxHeight: 160, borderRadius: 12, border: '1px solid #e2e8f0' }}
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling!.textContent = 'Invalid image URL';
+                          }}
+                        />
+                        <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}></div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {((photoInputMethod === 'file' && photoPreview) || (photoInputMethod === 'url' && photoUrl.trim())) && (
+                  <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                    <button
+                      type="button"
+                      onClick={handleAddPhoto}
+                      style={{
+                        background: '#10b981', color: 'white', border: 'none', padding: '8px 14px',
+                        borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 500
+                      }}
+                    >Confirm</button>
+                    <button
+                      type="button"
+                      onClick={() => { 
+                        setPhotoPreview(null); 
+                        setPhotoUrl(''); 
+                        setIsAddingPhoto(false); 
+                      }}
+                      style={{
+                        background: '#f56565', color: 'white', border: 'none', padding: '8px 14px',
+                        borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 500
+                      }}
+                    >Cancel</button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="form-actions">
@@ -154,7 +341,7 @@ export const CreatePinpointForm: React.FC<CreatePinpointFormProps> = ({
             <button 
               type="submit"
               className="create-btn"
-              disabled={!postData.title.trim() || !postData.description.trim()}
+              disabled={!postData.text.trim()}
             >
               Create Pinpoint
             </button>

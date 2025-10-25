@@ -9,7 +9,7 @@ interface BottomSheetProps {
   onToggle: () => void;
   onPinpointClick: (pinpoint: Pinpoint) => void;
   onClosePinpointDetails: () => void;
-  onAddPost: (pinpointId: string, postData: { type: 'alert' | 'cleaning' | 'both'; title: string; description: string }) => Promise<boolean>;
+  onAddPost: (pinpointId: string, postData: { type: 'alert' | 'cleaning' | 'both'; text: string; photos?: Array<{ url: string }> }) => Promise<boolean>;
   onDeletePinpoint: (pinpointId: string) => Promise<boolean>;
 }
 
