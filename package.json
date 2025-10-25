@@ -1,23 +1,37 @@
 {
-  "name": "hackathon",
+  "name": "hackathon-2025-projeto",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Fullstack waterway monitoring application",
   "type": "module",
+  "main": "index.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "npx tsx src/server.ts",
+    "seed": "npx tsx src/seed.ts",
+    "migrate": "dotenv -e .env -- npx prisma migrate dev --name init"
   },
+  "keywords": ["hackathon", "waterway", "monitoring", "react", "fastify"],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.1",
     "@types/google.maps": "^3.58.1",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "@fastify/jwt": "^10.0.0",
+    "@prisma/client": "^6.18.0",
+    "bcryptjs": "^3.0.2",
+    "dotenv": "^17.2.3",
+    "fastify": "^5.6.1",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
-    "@types/node": "^24.6.0",
+    "@types/node": "^24.9.1",
     "@types/react": "^19.1.16",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^4.7.0",
@@ -25,8 +39,10 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.22",
     "globals": "^16.4.0",
-    "typescript": "~5.9.3",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.45.0",
-    "vite": "^5.4.21"
+    "vite": "^5.4.21",
+    "dotenv-cli": "^10.0.0",
+    "prisma": "^6.18.0"
   }
 }
