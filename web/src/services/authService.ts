@@ -28,10 +28,7 @@ export class AuthService {
   }
 
   async getProfile(): Promise<User> {
-    console.log('AuthService: Getting profile...');
     const response = await apiClient.get<{ user: User }>(API_CONFIG.ENDPOINTS.PROFILE);
-    console.log('AuthService: Profile response:', response);
-    console.log('AuthService: Returning user:', response.user);
     return response.user;
   }
 

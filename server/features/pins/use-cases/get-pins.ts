@@ -18,8 +18,11 @@ export async function getPins(prisma: PrismaClient) {
   })));
 
   // Ensure posts[].photos is always an array (be defensive)
-  return pins.map(pin => ({
-    ...pin,
-    posts: pin.posts?.map((p) => ({ ...p, photos: p.photos ?? [] })) ?? []
-  }));
+  console.log('Pins from database:', pins.map(p => ({ 
+    id: p.id.slice(-8), 
+    lastActionSummary: p.lastActionSummary, 
+    postsCount: p.posts?.length || 0 
+  })));
+
+  return pins;
 }

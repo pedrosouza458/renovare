@@ -118,9 +118,13 @@ const GoogleMapSimple: React.FC<GoogleMapSimpleProps> = ({
       // Render pinpoints
       if (window.google?.maps) {
         const google = window.google;
+        console.log('Rendering pins:', pinpoints.map(p => ({ 
+          id: p.id.slice(-8), 
+          lastActionSummary: p.lastActionSummary,
+          postsCount: p.posts?.length || 0
+        })));
+        
         pinpoints.forEach(pinpoint => {
-          console.log('Pin:', { id: pinpoint.id.slice(-8), lastActionSummary: pinpoint.lastActionSummary });
-          
           // Use lastActionSummary to determine pin color and appearance
           let color = '#808080'; // Default grey for pins with no action
           let glyph = undefined;

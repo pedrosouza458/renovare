@@ -48,28 +48,27 @@ export async function createPost(
 
   const delta = pointsForType[data.type] ?? 0;
 
-  // create post and increment user points atomically in a transaction
-  const created = await prisma.$transaction(async (tx) => {
-    const createdPost = await tx.posts.create({
-      data: postData,
-      include: { photos: true },
-    });
-
-    // increment user.points
-    if (delta !== 0) {
-      await tx.users.update({
-        where: { id: userId },
-        data: { points: { increment: delta } },
-      });
-    }
-
-    await tx.pins.update({
-      where: { id: data.pinId },
-      data: { lastActionSummary: data.type },
-    });
-
-    return createdPost;
+  // Create post first
+  const createdPost = await prisma.posts.create({
+    data: postData,
+    include: { photos: true },
   });
 
-  return created;
+  // Update user points separately
+  if (delta !== 0) {
+    await prisma.users.update({
+      where: { id: userId },
+      data: { points: { increment: delta } },
+    });
+  }
+
+  // Update pin's lastActionSummary separately
+  console.log(`Updating pin ${data.pinId} lastActionSummary to: ${data.type}`);
+  await prisma.pins.update({
+    where: { id: data.pinId },
+    data: { lastActionSummary: data.type },
+  });
+  console.log(`Pin ${data.pinId} lastActionSummary updated successfully`);
+
+  return createdPost;
 }

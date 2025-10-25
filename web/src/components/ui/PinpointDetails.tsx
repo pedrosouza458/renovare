@@ -35,6 +35,7 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
   onDelete
 }) => {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [newPost, setNewPost] = useState({
     type: 'alert' as PostType,
     text: '',
@@ -82,6 +83,7 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
       return;
     }
     
+    setIsSubmitting(true);
     try {
       const success = await onAddPost(pinpoint.id, newPost);
       if (success) {
@@ -93,6 +95,8 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
       }
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Failed to add post. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -421,12 +425,19 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
               <button 
                 className="save-btn"
                 onClick={handleAddPost}
-                disabled={!newPost.text.trim() || 
+                disabled={isSubmitting || !newPost.text.trim() || 
                   (newPost.type === 'both' && newPost.photos.length !== 2) ||
                   ((newPost.type === 'alert' || newPost.type === 'cleaning') && newPost.photos.length !== 1)
                 }
               >
-                Save Post
+                {isSubmitting ? (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="loading-spinner"></span>
+                    Saving...
+                  </span>
+                ) : (
+                  'Save Post'
+                )}
               </button>
             </div>
           </div>

@@ -11,7 +11,13 @@ export const usePinpoints = () => {
     setLoading(true);
     setError(null);
     try {
+      console.log('Loading pinpoints...');
       const data = await pinpointService.getAllPinpoints();
+      console.log('Received pinpoints:', data.map(p => ({ 
+        id: p.id.slice(-8), 
+        lastActionSummary: p.lastActionSummary,
+        postsCount: p.posts?.length || 0
+      })));
       setPinpoints(data);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load pinpoints';
@@ -41,8 +47,8 @@ export const usePinpoints = () => {
         postData
       );
       
-      // Add to local state immediately for optimistic UI
-      setPinpoints(prev => [...prev, newPinpoint]);
+      // Reload all pinpoints to get fresh data
+      await loadPinpoints();
       
       return newPinpoint;
     } catch (err) {
@@ -62,7 +68,7 @@ export const usePinpoints = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [loadPinpoints]);
 
   const addPostToPinpoint = useCallback(async (
     pinpointId: string, 
@@ -71,12 +77,13 @@ export const usePinpoints = () => {
     setLoading(true);
     setError(null);
     try {
-  const updatedPinpoint = await pinpointService.addPostToPinpoint(pinpointId, postData);
+      console.log(`Adding post to pinpoint ${pinpointId}:`, postData);
+      await pinpointService.addPostToPinpoint(pinpointId, postData);
       
-      // Update local state
-      setPinpoints(prev => 
-        prev.map(p => p.id === pinpointId ? updatedPinpoint : p)
-      );
+      console.log('Post created successfully, reloading pinpoints...');
+      // Reload all pinpoints to get fresh data
+      await loadPinpoints();
+      console.log('Pinpoints reloaded');
       
       return true;
     } catch (err) {
@@ -87,7 +94,7 @@ export const usePinpoints = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [loadPinpoints]);
 
   const deletePinpoint = useCallback(async (pinpointId: string): Promise<boolean> => {
     setLoading(true);
