@@ -1,8 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 
+interface WaterwayData {
+  id: string;
+  name: string;
+  type: string;
+  coordinates: Array<{ lat: number; lng: number }>;
+}
+
 interface GoogleMapProps {
   currentLocation: { lat: number; lng: number } | null;
   onLocationChange: (lat: number, lng: number) => void;
+  waterways?: WaterwayData[];
 }
 
 // Minimal Google Maps types
@@ -19,7 +27,7 @@ interface GoogleMapsAPI {
 }
 
 interface GoogleMap {
-  addListener: (event: string, callback: (e: GoogleMapMouseEvent) => void) => void;
+  addListener: (event: string, callback: (e: GoogleMapMouseEvent) => void) => unknown;
   setCenter: (location: { lat: number; lng: number }) => void;
 }
 
@@ -48,9 +56,9 @@ declare global {
 }
 
 export const GoogleMap: React.FC<GoogleMapProps> = ({ 
-  // waterbodies, 
   currentLocation, 
-  onLocationChange 
+  onLocationChange,
+  waterways = []
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<GoogleMap | null>(null);
@@ -81,7 +89,7 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
       try {
         console.log('Initializing Google Maps...');
         const map = new window.google.maps.Map(mapRef.current, {
-          center: currentLocation || { lat: -29.9577, lng: -51.6253 }, // Charqueadas, RS, Brazil
+          center: { lat: -29.9577, lng: -51.6253 }, // Default: Charqueadas, RS, Brazil
           zoom: 12,
           styles: [
             {
@@ -113,10 +121,9 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
         mapInstanceRef.current = map;
 
         map.addListener('click', (event: GoogleMapMouseEvent) => {
-          if (event.latLng && isMounted) {
+          if (event.latLng) {
             const lat = event.latLng.lat();
             const lng = event.latLng.lng();
-            console.log('Map clicked at:', { lat, lng });
             onLocationChange(lat, lng);
           }
         });
@@ -213,21 +220,42 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
         mapInstanceRef.current = null;
       }
     };
-  }, [API_KEY, currentLocation, onLocationChange]);
+  }, [API_KEY, onLocationChange]); // Now both dependencies are stable
 
-  // Update map center and callbacks when location changes
+  // Update map center when currentLocation changes
   useEffect(() => {
     if (mapInstanceRef.current && currentLocation) {
       mapInstanceRef.current.setCenter(currentLocation);
     }
   }, [currentLocation]);
 
-  // Update markers when location changes
-  useEffect(() => {
-    console.log('Markers useEffect triggered:', { currentLocation, isLoaded, hasGoogle: !!window.google?.maps, hasMap: !!mapInstanceRef.current });
+  // Function to create custom waterway marker icons
+  const createWaterwayIcon = (type: string) => {
+    const color = type === 'river' ? '#1a73e8' : type === 'stream' ? '#34a853' : '#ea4335';
+    const emoji = type === 'river' ? '🏞' : type === 'stream' ? '💧' : '🌊';
     
+    return {
+      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+        <svg width="32" height="40" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)"/>
+            </filter>
+          </defs>
+          <path d="M16 2C8.27 2 2 8.27 2 16c0 7.5 14 22 14 22s14-14.5 14-22C30 8.27 23.73 2 16 2z" 
+                fill="${color}" filter="url(#shadow)"/>
+          <circle cx="16" cy="16" r="10" fill="white"/>
+          <text x="16" y="22" text-anchor="middle" font-size="14" fill="${color}">${emoji}</text>
+        </svg>
+      `)}`,
+      scaledSize: new window.google!.maps.Size(26, 32),
+      anchor: new window.google!.maps.Point(13, 32)
+    };
+  };
+
+  // Update markers when location or waterways change
+  useEffect(() => {
     if (!mapInstanceRef.current || !isLoaded || !window.google?.maps) {
-      console.log('Skipping marker update - missing requirements');
       return;
     }
 
@@ -242,20 +270,36 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
     });
     markersRef.current = [];
 
-    // Add current location marker
+    // Add current location marker (red pin)
     if (currentLocation && window.google?.maps && mapInstanceRef.current) {
-      console.log('Creating marker at:', currentLocation);
       const currentLocationMarker = new window.google.maps.Marker({
         position: currentLocation,
         map: mapInstanceRef.current,
-        title: 'Current Location'
-        // Using default red marker for better visibility
+        title: 'Current Location',
+        zIndex: 1000 // Higher z-index to appear on top
       });
 
       markersRef.current.push(currentLocationMarker);
-      console.log('Marker created and added to map');
-    } else {
-      console.log('No current location to mark');
+    }
+
+    // Add waterway markers
+    if (waterways && waterways.length > 0 && window.google?.maps && mapInstanceRef.current) {
+      waterways.forEach(waterway => {
+        if (waterway.coordinates && waterway.coordinates.length > 0 && window.google?.maps && mapInstanceRef.current) {
+          // Use the first coordinate as the marker position
+          const position = waterway.coordinates[0];
+          
+          const waterwayMarker = new window.google.maps.Marker({
+            position: position,
+            map: mapInstanceRef.current!,
+            title: waterway.name,
+            icon: createWaterwayIcon(waterway.type),
+            zIndex: 100 // Lower than current location
+          });
+
+          markersRef.current.push(waterwayMarker);
+        }
+      });
     }
 
     // Cleanup function for markers
@@ -269,7 +313,7 @@ export const GoogleMap: React.FC<GoogleMapProps> = ({
         }
       });
     };
-  }, [currentLocation, isLoaded]); // Removed waterbodies dependency temporarily
+  }, [currentLocation, isLoaded, waterways]);
 
   // Remove the separate useEffect for map center since it's now handled above
 
