@@ -397,27 +397,105 @@
 .post-item {
   background: white;
   border: 1px solid #e8eaed;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 12px;
+  border-radius: 12px;
+  padding: 0;
+  margin-bottom: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.2s ease;
+}
+
+.post-item:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* Post photos container - full width at top */
+.post-photos {
+  width: 100%;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+.post-photo {
+  position: relative;
+  cursor: pointer;
+  flex: 1;
+  overflow: hidden;
+}
+
+.post-photos.single-photo .post-photo {
+  width: 100%;
+  height: 250px;
+}
+
+.post-photos.dual-photos .post-photo {
+  width: 50%;
+  height: 200px;
+}
+
+.post-photos.dual-photos .post-photo:first-child {
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.post-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s ease;
+  display: block;
+}
+
+.post-photo:hover img {
+  transform: scale(1.02);
+}
+
+.photo-counter {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Post content container - below photos */
+.post-content {
+  padding: 16px;
 }
 
 .post-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .post-type {
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: capitalize;
 }
 
 .post-date {
   font-size: 11px;
   color: #5f6368;
+  font-weight: 500;
+}
+
+.post-text {
+  margin: 0;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.5;
+  font-weight: 400;
 }
 
 .post-title {
@@ -449,6 +527,22 @@
   
   .pinpoint-details {
     padding: 12px;
+  }
+  
+  /* Mobile photo adjustments */
+  .post-photos.single-photo .post-photo {
+    height: 200px;
+  }
+  
+  .post-photos.dual-photos .post-photo {
+    height: 150px;
+  }
+  
+  .photo-counter {
+    top: 6px;
+    right: 6px;
+    padding: 3px 6px;
+    font-size: 10px;
   }
   
   .pinpoint-header {

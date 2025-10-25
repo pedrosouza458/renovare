@@ -438,20 +438,9 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
           ) : (
             pinpoint.posts.map((post) => (
               <div key={post.id} className="post-item">
-                <div className="post-header">
-                  <span 
-                    className="post-type"
-                    style={{ color: getPostTypeColor(post.type) }}
-                  >
-                    {getPostTypeIcon(post.type)} {post.type}
-                  </span>
-                  <span className="post-date">
-                    {new Date(post.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-                <p className="post-text">{post.text}</p>
+                {/* Photos at the top, full width */}
                 {post.photos && post.photos.length > 0 && (
-                  <div className="post-photos">
+                  <div className={`post-photos ${post.photos.length === 1 ? 'single-photo' : 'dual-photos'}`}>
                     {post.photos.map((photo, idx) => (
                       <div key={photo.id || idx} className="post-photo">
                         <img
@@ -461,13 +450,32 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
                         />
                         {post.photos.length > 1 && (
                           <div className="photo-counter">
-                            {idx + 1}/{post.photos.length}
+                            {post.type === 'both' 
+                              ? (idx === 0 ? 'Before' : 'After')
+                              : `${idx + 1}/${post.photos.length}`
+                            }
                           </div>
                         )}
                       </div>
                     ))}
                   </div>
                 )}
+                
+                {/* Post content below photos */}
+                <div className="post-content">
+                  <div className="post-header">
+                    <span 
+                      className="post-type"
+                      style={{ color: getPostTypeColor(post.type) }}
+                    >
+                      {getPostTypeIcon(post.type)} {post.type}
+                    </span>
+                    <span className="post-date">
+                      {new Date(post.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="post-text">{post.text}</p>
+                </div>
               </div>
             ))
           )}
