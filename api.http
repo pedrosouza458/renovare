@@ -37,16 +37,26 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3MTZiM
 Accept: application/json
 
 ### Update current user (protected) — update fields on the authenticated user
-PATCH http://localhost:3000/users
+PUT http://localhost:3000/users
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3MTZiMDM0OC03Yjg3LTQxZGUtOWNkZi1kMGQ3NzkxZjk1ZTMiLCJpYXQiOjE3NjEzNjU3ODR9.vRSTQ9rkXMMAY-IcUzcUAG9HnlkSqJz7k8uB_axJLDE
 Content-Type: application/json
 Accept: application/json
 
 {
-  "username": "updated_name",
-  "email": "updated.email@example.com",
+  "username": "updatedd_name",
+  "email": "updatedd.email@example.com",
   "password": "newsecret",
   "points": 10
+}
+
+### Update current user score (protected) — update fields on the authenticated user
+PUT http://localhost:3000/users/score
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJiM2Y5OTA1Ny1mZTA2LTQ5NGQtYTQwNi02ODdkNDJiMzU1ZDciLCJpYXQiOjE3NjEzNzE2NjR9.6PQ0zs4jNa_IgtXje0BEkrGw_Dk4sFonMQgZmv-WqLY
+Content-Type: application/json
+Accept: application/json
+
+{
+  "score": 30
 }
 
 ### Delete current user (protected)

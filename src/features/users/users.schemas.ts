@@ -34,3 +34,9 @@ export const updateUserBodySchema = z.object({
 });
 
 export type UpdateUserBody = z.infer<typeof updateUserBodySchema>;
+
+export const updateUserScoreBodySchema = z.object({
+  score: z.number(),
+});
+
+export type UpdateUserScoreBody = z.infer<typeof updateUserScoreBodySchema>;

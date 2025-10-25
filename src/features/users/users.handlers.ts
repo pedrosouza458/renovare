@@ -5,11 +5,14 @@ import {
   userResponseSchema,
   createUserBodySchema,
   updateUserBodySchema,
+  updateUserScoreBodySchema,
 } from "./users.schemas";
 import { getUserById } from "./use-cases/get-user-by-id";
 import { prisma } from "../../lib/prisma";
 import { registerUser } from "./use-cases/register-user";
 import { deleteUser } from "./use-cases/delete-user";
+import { updateUser } from "./use-cases/update-user";
+import { updateUserScore } from "./use-cases/update-user-score";
 
 export async function getUsersHandler(
   request: FastifyRequest,
@@ -69,6 +72,58 @@ export async function getUserByIdHandler(
   } catch (error) {
     console.log("Get Users Error: ", error);
     return reply.status(500).send({ message: "Internal Server Error" });
+  }
+}
+
+export async function updateUserHandler(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  try {
+    const anyReq: any = request;
+    const userId: string | undefined = anyReq.user?.userId;
+    if (!userId) return reply.status(401).send({ error: "Unauthorized" });
+
+    const parsed = updateUserBodySchema.parse(request.body);
+
+    const user = await updateUser(prisma, userId, parsed as any);
+    const validated = userResponseSchema.parse(user);
+
+    return reply.status(200).send(validated);
+  } catch (err: any) {
+    const message = err?.message ?? "Internal Server Error";
+    return reply.status(400).send({ error: message });
+  }
+}
+
+export async function updateUserScoreHandler(
+  request: FastifyRequest,
+  reply: FastifyReply
+) {
+  try {
+    const anyReq: any = request;
+    const userId: string | undefined = anyReq.user?.userId;
+
+    // **401 Unauthorized check (remains the same)**
+    if (!userId) return reply.status(401).send({ error: "Unauthorized" });
+
+    const parsed = updateUserScoreBodySchema.parse(request.body);
+
+    const user = await updateUserScore(prisma, userId, parsed.score);
+    const validated = userResponseSchema.parse(user);
+
+    return reply.status(200).send(validated);
+  } catch (err: any) {
+    // 💡 Specific error handling for Prisma's "record not found" on update
+    // 💡 Generic error handling (Zod validation or other errors)
+    const message = err?.message ?? "Internal Server Error";
+    console.error("updateUserScoreHandler Error:", message, err.stack);
+
+    // Assuming Zod errors are 400s, and other unexpected errors default to 500
+    // Check if the error is from Zod/client input error to return 400
+    const isClientError = err.name === "ZodError";
+
+    return reply.status(isClientError ? 400 : 500).send({ error: message });
   }
 }
 

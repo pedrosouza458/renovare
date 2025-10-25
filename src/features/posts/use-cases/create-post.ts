@@ -39,9 +39,31 @@ export async function createPost(
     };
   }
 
-  const created = await prisma.posts.create({
-    data: postData,
-    include: { photos: true },
+  // map post type to points to award
+  const pointsForType: Record<string, number> = {
+    [PostTypes.BOTH]: 80,
+    [PostTypes.ALERT]: 30, // WARNING was mapped to ALERT in enum (legacy name)
+    [PostTypes.CLEANING]: 50,
+  };
+
+  const delta = pointsForType[data.type] ?? 0;
+
+  // create post and increment user points atomically in a transaction
+  const created = await prisma.$transaction(async (tx) => {
+    const createdPost = await tx.posts.create({
+      data: postData,
+      include: { photos: true },
+    });
+
+    // increment user.points
+    if (delta !== 0) {
+      await tx.users.update({
+        where: { id: userId },
+        data: { points: { increment: delta } },
+      });
+    }
+
+    return createdPost;
   });
 
   return created;

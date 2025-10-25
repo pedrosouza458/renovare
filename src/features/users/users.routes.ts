@@ -4,6 +4,8 @@ import {
   getUsersHandler,
   registerUserHandler,
   deleteUserHandler,
+  updateUserHandler,
+  updateUserScoreHandler,
 } from "./users.handlers";
 import { authenticate } from "../../plugins/authenticate";
 
@@ -11,6 +13,7 @@ export async function userRoutes(app: FastifyInstance) {
   app.get("/", getUsersHandler);
   app.get("/:id", getUserByIdHandler);
   app.post("/", registerUserHandler);
-  // protected routes that act on the authenticated user
+  app.put("/", { preHandler: [authenticate] }, updateUserHandler);
+  app.put("/score", { preHandler: [authenticate] }, updateUserScoreHandler);
   app.delete("/", { preHandler: [authenticate] }, deleteUserHandler);
 }
