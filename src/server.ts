@@ -1,7 +1,33 @@
+import "dotenv/config";
 import fastify from "fastify";
+import { userRoutes } from "./features/users/users.routes";
+import { authRoutes } from "./features/auth/auth.routes";
+import { registerJwt } from "./plugins/jwt";
 
-const app = fastify();
+const app = fastify({ logger: true });
 
-app.listen({ port: 3000 }, () => {
-  console.log("Server is running");
+async function main() {
+  // register jwt plugin first
+  await registerJwt(app);
+
+  // register auth routes at /auth
+  app.register(authRoutes, { prefix: "/auth" });
+
+  // register user routes under /users
+  app.register(userRoutes, { prefix: "/users" });
+
+  // expose a simple routes dump for debugging
+  app.get("/_routes", async () => {
+    return { routes: (app as any).printRoutes() };
+  });
+
+  await app.ready();
+  app.log.info(app.printRoutes());
+
+  await app.listen({ port: Number(process.env.PORT ?? 3000) });
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
 });

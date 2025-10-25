@@ -1,0 +1,55 @@
+###
+# Quick routes for manual testing (use REST Client or `http` extension)
+
+### List users
+GET http://localhost:3000/users
+Accept: application/json
+
+### Get user by id (replace :id with a real id from the list)
+GET http://localhost:3000/users/9fbf760a-be2a-4088-9b06-4284f47c8d2a
+Accept: application/json
+
+###
+POST http://localhost:3000/auth/login
+Accept: application/json
+Content-Type: application/json
+
+{
+  "email": "new.user@example.com",
+  "password": "supersecret"
+}
+
+### Register a new user (example)
+POST http://localhost:3000/users
+Accept: application/json
+Content-Type: application/json
+
+{
+  "username": "new_user",
+  "email": "new.user@example.com",
+  "password": "supersecret",
+  "points": 0
+}
+
+### Profile (protected) - replace {{token}} with the token returned from login
+GET http://localhost:3000/auth/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3MTZiMDM0OC03Yjg3LTQxZGUtOWNkZi1kMGQ3NzkxZjk1ZTMiLCJpYXQiOjE3NjEzNjQ5MDV9.3MrClrCRAb_BztemPsEdjgoRG0Y3LBVbKhDsUIcaexA
+Accept: application/json
+
+### Update current user (protected) — update fields on the authenticated user
+PATCH http://localhost:3000/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3MTZiMDM0OC03Yjg3LTQxZGUtOWNkZi1kMGQ3NzkxZjk1ZTMiLCJpYXQiOjE3NjEzNjU3ODR9.vRSTQ9rkXMMAY-IcUzcUAG9HnlkSqJz7k8uB_axJLDE
+Content-Type: application/json
+Accept: application/json
+
+{
+  "username": "updated_name",
+  "email": "updated.email@example.com",
+  "password": "newsecret",
+  "points": 10
+}
+
+### Delete current user (protected)
+DELETE http://localhost:3000/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3MTZiMDM0OC03Yjg3LTQxZGUtOWNkZi1kMGQ3NzkxZjk1ZTMiLCJpYXQiOjE3NjEzNjU3ODR9.vRSTQ9rkXMMAY-IcUzcUAG9HnlkSqJz7k8uB_axJLDE
+Accept: application/json
