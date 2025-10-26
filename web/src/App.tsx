@@ -1,55 +1,83 @@
-import { useState, useEffect, useCallback } from 'react';
-import './styles/index.css';
-import GoogleMapSimple from './components/GoogleMapSimple';
-import { LoadingSpinner, ErrorIndicator, BottomSheet, ProfileButton, LoginScreen } from './components/ui';
-import { AddPinpointButton } from './components/ui/AddPinpointButton';
-import { CreatePinpointForm } from './components/ui/CreatePinpointForm';
-import { useWaterways } from './hooks/useWaterways';
-import { usePinpoints } from './hooks/usePinpoints';
-import { useAuth } from './hooks/useAuth';
-import type { WaterwayData, Location } from './types';
-import { findNearbyPinpoints, formatDistance } from './utils/locationUtils';
-import type { PostType, Pinpoint, PostPhoto } from './types';
-import { DEFAULT_LOCATION } from './constants/map';
+import { useState, useEffect, useCallback } from "react";
+import "./styles/index.css";
+import GoogleMapSimple from "./components/GoogleMapSimple";
+import {
+  LoadingSpinner,
+  ErrorIndicator,
+  BottomSheet,
+  ProfileButton,
+  LoginScreen,
+} from "./components/ui";
+import { AddPinpointButton } from "./components/ui/AddPinpointButton";
+import { CreatePinpointForm } from "./components/ui/CreatePinpointForm";
+import { useWaterways } from "./hooks/useWaterways";
+import { usePinpoints } from "./hooks/usePinpoints";
+import { useAuth } from "./hooks/useAuth";
+import type { WaterwayData, Location } from "./types";
+import { findNearbyPinpoints, formatDistance } from "./utils/locationUtils";
+import type { PostType, Pinpoint, PostPhoto } from "./types";
+import { DEFAULT_LOCATION } from "./constants/map";
 
 function App() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { waterways, loading, error, fetchWaterways } = useWaterways();
-  const { pinpoints, createPinpointWithPost, addPostToPinpoint, deletePinpoint } = usePinpoints();
-  const [currentLocation, setCurrentLocation] = useState<Location | null>(DEFAULT_LOCATION);
+  const {
+    pinpoints,
+    createPinpointWithPost,
+    addPostToPinpoint,
+    deletePinpoint,
+  } = usePinpoints();
+  const [currentLocation, setCurrentLocation] = useState<Location | null>(
+    DEFAULT_LOCATION
+  );
   const [isPinpointsPanelOpen, setIsPinpointsPanelOpen] = useState(false);
-  const [selectedPinpoint, setSelectedPinpoint] = useState<Pinpoint | null>(null);
+  const [selectedPinpoint, setSelectedPinpoint] = useState<Pinpoint | null>(
+    null
+  );
   const [isAddingPinpoint, setIsAddingPinpoint] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [createFormLocation, setCreateFormLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [createFormLocation, setCreateFormLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+
+  // Create a memoized function to handle waterway fetching
+  const fetchWaterwaysIfAuthenticated = useCallback(
+    (location: Location) => {
+      if (!isAuthenticated) return;
+      fetchWaterways(location);
+    },
+    [isAuthenticated, fetchWaterways]
+  );
 
   // Load initial waterways when component mounts
   useEffect(() => {
-    fetchWaterways(DEFAULT_LOCATION);
-    
+    // Only fetch waterways if user is authenticated
+    fetchWaterwaysIfAuthenticated(DEFAULT_LOCATION);
+
     // Try to get user's actual location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const userLocation = {
             lat: position.coords.latitude,
-            lng: position.coords.longitude
+            lng: position.coords.longitude,
           };
           setCurrentLocation(userLocation);
-          fetchWaterways(userLocation);
+          fetchWaterwaysIfAuthenticated(userLocation);
         },
         (error) => {
-          console.log('Geolocation error:', error);
+          console.log("Geolocation error:", error);
           // Continue with default location if geolocation fails
         },
         {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 300000 // 5 minutes
+          maximumAge: 300000, // 5 minutes
         }
       );
     }
-  }, [fetchWaterways]);
+  }, [fetchWaterwaysIfAuthenticated]);
 
   const handleWaterwayClick = useCallback((waterway: WaterwayData) => {
     if (waterway.coordinates.length > 0) {
@@ -65,60 +93,72 @@ function App() {
     setIsPinpointsPanelOpen(true);
   }, []);
 
-  const handleMapClick = useCallback((lat: number, lng: number) => {
-    if (isAddingPinpoint) {
-      setCreateFormLocation({ lat, lng });
-      setShowCreateForm(true);
-      setIsAddingPinpoint(false);
-    } else {
-      // Update location and fetch waterways for the clicked location
-      const newLocation = { lat, lng };
-      setCurrentLocation(newLocation);
-      fetchWaterways(newLocation);
-    }
-  }, [isAddingPinpoint, fetchWaterways]);
+  const handleMapClick = useCallback(
+    (lat: number, lng: number) => {
+      if (isAddingPinpoint) {
+        setCreateFormLocation({ lat, lng });
+        setShowCreateForm(true);
+        setIsAddingPinpoint(false);
+      } else {
+        // Update location and fetch waterways for the clicked location
+        const newLocation = { lat, lng };
+        setCurrentLocation(newLocation);
+        fetchWaterways(newLocation);
+      }
+    },
+    [isAddingPinpoint, fetchWaterways]
+  );
 
-  const handleCreatePinpoint = useCallback(async (postData: { type: PostType; text: string; photos: PostPhoto[] }) => {
-    if (createFormLocation) {
-      try {
-        const newPinpoint = await createPinpointWithPost(
-          createFormLocation.lat, 
-          createFormLocation.lng, 
-          postData
-        );
-        setSelectedPinpoint(newPinpoint);
-        setIsPinpointsPanelOpen(true);
-        setShowCreateForm(false);
-        setCreateFormLocation(null);
-      } catch (error) {
-        // Handle 409 conflict with better UX
-        if (error instanceof Error && error.message.includes('409')) {
-          const nearby = findNearbyPinpoints(
-            createFormLocation.lat, 
-            createFormLocation.lng, 
-            pinpoints, 
-            100
+  const handleCreatePinpoint = useCallback(
+    async (postData: { type: PostType; text: string; photos: PostPhoto[] }) => {
+      if (createFormLocation) {
+        try {
+          const newPinpoint = await createPinpointWithPost(
+            createFormLocation.lat,
+            createFormLocation.lng,
+            postData
           );
-          
-          if (nearby.length > 0) {
-            const closest = nearby[0];
-            const message = `A pinpoint already exists ${formatDistance(closest.distance)} away. Would you like to add your post to that pinpoint instead?`;
-            
-            if (window.confirm(message)) {
-              setSelectedPinpoint(closest);
-              setIsPinpointsPanelOpen(true);
-              setShowCreateForm(false);
-              setCreateFormLocation(null);
-              return;
+          setSelectedPinpoint(newPinpoint);
+          setIsPinpointsPanelOpen(true);
+          setShowCreateForm(false);
+          setCreateFormLocation(null);
+        } catch (error) {
+          // Handle 409 conflict with better UX
+          if (error instanceof Error && error.message.includes("409")) {
+            const nearby = findNearbyPinpoints(
+              createFormLocation.lat,
+              createFormLocation.lng,
+              pinpoints,
+              100
+            );
+
+            if (nearby.length > 0) {
+              const closest = nearby[0];
+              const message = `A pinpoint already exists ${formatDistance(
+                closest.distance
+              )} away. Would you like to add your post to that pinpoint instead?`;
+
+              if (window.confirm(message)) {
+                setSelectedPinpoint(closest);
+                setIsPinpointsPanelOpen(true);
+                setShowCreateForm(false);
+                setCreateFormLocation(null);
+                return;
+              }
             }
           }
+
+          // Show error message
+          alert(
+            error instanceof Error
+              ? error.message
+              : "Failed to create pinpoint. Please try again."
+          );
         }
-        
-        // Show error message
-        alert(error instanceof Error ? error.message : 'Failed to create pinpoint. Please try again.');
       }
-    }
-  }, [createFormLocation, createPinpointWithPost, pinpoints]);
+    },
+    [createFormLocation, createPinpointWithPost, pinpoints]
+  );
 
   const handleCancelCreate = useCallback(() => {
     setShowCreateForm(false);
@@ -156,6 +196,7 @@ function App() {
         onPinpointClick={handlePinpointClick}
         onMapClick={handleMapClick}
         isAddingPinpoint={isAddingPinpoint}
+        showWaterways={isAuthenticated}
       />
 
       {/* Profile Button - Upper left corner */}
@@ -163,12 +204,12 @@ function App() {
 
       {/* Loading indicator */}
       {loading && <LoadingSpinner message="Carregando..." />}
-      
+
       {/* Error indicator */}
       {error && <ErrorIndicator message={error} />}
 
       {/* Add Pinpoint Button */}
-      <AddPinpointButton 
+      <AddPinpointButton
         isAddingMode={isAddingPinpoint}
         onToggleAddMode={() => setIsAddingPinpoint(!isAddingPinpoint)}
       />
@@ -184,17 +225,20 @@ function App() {
       )}
 
       {/* Instructions overlay - Mobile first */}
-      {!loading && !error && waterways.length === 0 && pinpoints.length === 0 && (
-        <div className="instructions-overlay">
-          <div className="instructions-card">
-            <div className="instructions-icon">🌊</div>
-            <h3>Discover Waterways & Add Pinpoints</h3>
-            <p>Tap anywhere on the map to find nearby rivers and streams</p>
-            <p>Use the + button to add pinpoints with posts</p>
-            <div className="location-info">📍 Charqueadas, RS, Brazil</div>
+      {!loading &&
+        !error &&
+        waterways.length === 0 &&
+        pinpoints.length === 0 && (
+          <div className="instructions-overlay">
+            <div className="instructions-card">
+              <div className="instructions-icon">🌊</div>
+              <h3>Discover Waterways & Add Pinpoints</h3>
+              <p>Tap anywhere on the map to find nearby rivers and streams</p>
+              <p>Use the + button to add pinpoints with posts</p>
+              <div className="location-info">📍 Charqueadas, RS, Brazil</div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Google Maps style bottom sheet for pinpoints */}
       <BottomSheet
