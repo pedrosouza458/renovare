@@ -1,29 +1,21 @@
 {
   "name": "hackathon-2025-projeto",
+  "private": true,
   "version": "1.0.0",
-  "description": "",
+  "description": "Fullstack waterway monitoring application",
   "type": "module",
-  "main": "index.js",
   "scripts": {
-    "dev": "npx tsx src/server.ts",
-    "seed": "npx tsx src/seed.ts",
-    "migrate": "dotenv -e .env -- npx prisma migrate dev --name init"
+    "dev": "concurrently --names \"SERVER,WEB\" --prefix-colors \"blue,green\" \"npm run server\" \"npm run web\"",
+    "web": "cd web && npm run dev",
+    "server": "cd server && npm run dev",
+    "install:all": "npm install && cd web && npm install && cd ../server && npm install",
+    "build:web": "cd web && npm run build",
+    "build:server": "cd server && npm run build"
   },
-  "keywords": [],
+  "keywords": ["hackathon", "waterway", "monitoring", "fullstack"],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^24.9.1",
-    "dotenv-cli": "^10.0.0",
-    "prisma": "^6.18.0",
-    "typescript": "^5.9.3"
-  },
-  "dependencies": {
-    "@fastify/jwt": "^10.0.0",
-    "@prisma/client": "^6.18.0",
-    "bcryptjs": "^3.0.2",
-    "dotenv": "^17.2.3",
-    "fastify": "^5.6.1",
-    "zod": "^4.1.12"
+    "concurrently": "^9.2.1"
   }
 }

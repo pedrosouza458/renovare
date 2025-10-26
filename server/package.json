@@ -1,0 +1,41 @@
+{
+  "name": "waterway-monitoring-server",
+  "version": "1.0.0",
+  "description": "Waterway monitoring backend API",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "dev": "npx tsx server.ts",
+    "seed": "npx tsx seed.ts",
+    "migrate": "dotenv -e .env -- npx prisma migrate dev --name init",
+    "generate": "npx prisma generate",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
+  "keywords": [
+    "hackathon",
+    "waterway",
+    "monitoring",
+    "fastify",
+    "backend",
+    "api"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/cors": "^8.5.0",
+    "@fastify/jwt": "^8.0.0",
+    "@prisma/client": "^6.18.0",
+    "bcryptjs": "^3.0.2",
+    "dotenv": "^17.2.3",
+    "fastify": "^4.28.1",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.1",
+    "dotenv-cli": "^10.0.0",
+    "prisma": "^6.18.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

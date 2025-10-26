@@ -1,0 +1,215 @@
+/* Bottom Sheet Component */
+.bottom-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  box-shadow: 0 -2px 24px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.bottom-sheet.collapsed {
+  transform: translateY(calc(100% - 88px));
+}
+
+.bottom-sheet.expanded {
+  transform: translateY(0);
+}
+
+/* Handle bar for dragging */
+.bottom-sheet-handle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.handle-bar {
+  width: 36px;
+  height: 4px;
+  background: #dadce0;
+  border-radius: 2px;
+}
+
+/* Bottom sheet header */
+.bottom-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #e8eaed;
+  min-height: 64px;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.header-icon {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(26, 115, 232, 0.1);
+  border-radius: 20px;
+}
+
+.header-text h3 {
+  font-size: 16px;
+  font-weight: 500;
+  color: #202124;
+  margin: 0;
+}
+
+.header-text p {
+  font-size: 12px;
+  color: #5f6368;
+  margin: 2px 0 0 0;
+}
+
+.expand-icon {
+  font-size: 24px;
+  color: #5f6368;
+  margin-left: 8px;
+}
+
+/* Bottom sheet content */
+.bottom-sheet-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+.rivers-list {
+  overflow-y: auto;
+  max-height: calc(80vh - 88px);
+}
+
+/* River items */
+.river-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid #f1f3f4;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.river-item:last-child {
+  border-bottom: none;
+}
+
+.river-item:hover,
+.river-item:active {
+  background-color: rgba(26, 115, 232, 0.04);
+}
+
+.river-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.river-icon {
+  font-size: 20px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(52, 168, 83, 0.1);
+  border-radius: 18px;
+}
+
+.river-details {
+  flex: 1;
+}
+
+.river-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #202124;
+  margin: 0 0 2px 0;
+  line-height: 1.3;
+}
+
+.river-meta {
+  font-size: 12px;
+  color: #5f6368;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.river-action {
+  margin-left: 8px;
+}
+
+.navigate-icon {
+  font-size: 18px;
+  color: #1a73e8;
+  font-weight: bold;
+}
+
+/* Custom scrollbar */
+.rivers-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.rivers-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.rivers-list::-webkit-scrollbar-thumb {
+  background: #dadce0;
+  border-radius: 2px;
+}
+
+.rivers-list::-webkit-scrollbar-thumb:hover {
+  background: #bdc1c6;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .bottom-sheet {
+    border-radius: 16px 16px 0 0;
+  }
+  
+  .river-item {
+    padding: 14px 16px;
+  }
+  
+  .river-name {
+    font-size: 15px;
+  }
+  
+  .header-text h3 {
+    font-size: 15px;
+  }
+}
+
+/* Touch optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .river-item:hover {
+    background-color: transparent;
+  }
+  
+  .river-item:active {
+    background-color: rgba(26, 115, 232, 0.08);
+  }
+}

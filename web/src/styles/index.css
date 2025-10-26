@@ -1,0 +1,7 @@
+/* Import all component styles */
+@import './globals.css';
+@import './loading-spinner.css';
+@import './error-indicator.css';
+@import './bottom-sheet.css';
+@import './instructions.css';
+@import './pinpoints.css';
