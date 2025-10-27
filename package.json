@@ -12,7 +12,12 @@
     "build:web": "cd web && npm run build",
     "build:server": "cd server && npm run build"
   },
-  "keywords": ["hackathon", "waterway", "monitoring", "fullstack"],
+  "keywords": [
+    "hackathon",
+    "waterway",
+    "monitoring",
+    "fullstack"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {

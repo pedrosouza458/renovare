@@ -5,8 +5,8 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "dev": "npx tsx server.ts",
-    "seed": "npx tsx seed.ts",
+    "dev": "npx tsx src/server.ts",
+    "seed": "npx tsx src/seed.ts",
     "migrate": "dotenv -e .env -- npx prisma migrate dev --name init",
     "generate": "npx prisma generate",
     "build": "tsc",

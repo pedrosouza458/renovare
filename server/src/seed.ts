@@ -16,7 +16,7 @@ async function main() {
   // Hash passwords for test users
   const testPassword = await bcrypt.hash("test123", 10);
 
-    const defaultUser = await prisma.users.upsert({
+  const defaultUser = await prisma.users.upsert({
     where: { username: "Teste" },
     update: {},
     create: {
@@ -24,7 +24,7 @@ async function main() {
       email: "teste@gmail.com",
       cpf: "295.640.670-14", // Valid CPF for testing
       password: testPassword, // Properly hashed password: "test123"
-      points: 150,
+      points: 0,
     },
   });
 
@@ -77,7 +77,7 @@ async function main() {
     data: {
       latitude: -29.955,
       longitude: -51.625,
-      lastActionSummary: "ALERT", 
+      lastActionSummary: "ALERT",
     },
   });
 
@@ -99,9 +99,7 @@ async function main() {
     },
   });
 
-  console.log(
-    `Created pins: ${alertPin.id}, ${cleaningPin.id}, ${bothPin.id}`
-  );
+  console.log(`Created pins: ${alertPin.id}, ${cleaningPin.id}, ${bothPin.id}`);
 
   // --- 3. Create Posts and Photos ---
   // Posts will automatically update the pin's lastActionSummary when created
@@ -183,7 +181,7 @@ async function main() {
   });
 
   // --- Additional Pins for Charqueadas and São Jerônimo ---
-  
+
   // Pin 4: Charqueadas - Rio Jacuí area
   const charqueadasRio = await prisma.pins.create({
     data: {
@@ -221,7 +219,7 @@ async function main() {
   });
 
   // Additional posts for the new pins
-  
+
   // Post for Charqueadas Rio
   const charqueadasRioPost = await prisma.posts.create({
     data: {
