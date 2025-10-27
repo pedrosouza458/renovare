@@ -48,6 +48,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: white;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  background-color: #2563eb; /* A nice blue color */
 }
 
 .profile-initial {
