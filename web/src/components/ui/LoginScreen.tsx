@@ -21,9 +21,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
     let success = false;
     if (mode === "login") {
-      console.log("Attempting login...");
       success = await login(formData.email, formData.password);
-      console.log("Login success:", success);
     } else {
       success = await register(
         formData.username,
@@ -34,7 +32,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     }
 
     if (success) {
-      console.log("Authentication successful, reloading page...");
       // Force reload to ensure proper app initialization with authenticated state
       window.location.reload();
     }

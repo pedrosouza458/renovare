@@ -11,13 +11,7 @@ export const usePinpoints = () => {
     setLoading(true);
     setError(null);
     try {
-      // console.log("Loading pinpoints...");
       const data = await pinpointService.getAllPinpoints();
-      // console.log('Received pinpoints:', data.map(p => ({
-      //   id: p.id.slice(-8),
-      //   lastActionSummary: p.lastActionSummary,
-      //   postsCount: p.posts?.length || 0
-      // })));
       setPinpoints(data);
     } catch (err) {
       const errorMessage =
