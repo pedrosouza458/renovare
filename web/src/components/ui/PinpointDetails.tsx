@@ -644,6 +644,7 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
         </div>
       )}
         </div>
+      </div>
     </div>
   );
 };
