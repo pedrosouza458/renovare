@@ -261,7 +261,6 @@ const GoogleMapSimple: React.FC<GoogleMapSimpleProps> = ({
     return (
       <div className="map-container">
         <LoadingSpinner />
-        <div className="loading-text">Loading map...</div>
       </div>
     );
   }

@@ -56,18 +56,15 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
   const [photoUrl, setPhotoUrl] = useState('');
   const [selectedPhoto, setSelectedPhoto] = useState<{ url: string; index: number; photos: PostPhoto[] } | null>(null);
 
-  // Check if cleaning posts are allowed
   const hasAlertOrBoth = pinpoint.posts?.some(post => 
     post.type === 'alert' || post.type === 'both'
   ) || false;
 
   const handlePostTypeChange = (newType: PostType) => {
-    // If trying to select cleaning but no alert/both posts exist, keep current type or switch to alert
     if (newType === 'cleaning' && !hasAlertOrBoth) {
-      return; // Don't change the type
+      return;
     }
     
-    // Clear photos if switching between different photo requirements
     const currentRequiredPhotos = newPost.type === 'both' ? 2 : 1;
     const newRequiredPhotos = newType === 'both' ? 2 : 1;
     
@@ -84,7 +81,6 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
   const handleAddPost = async () => {
     if (!newPost.text.trim()) return;
     
-    // Validate required photos based on post type
     const requiredPhotos = newPost.type === 'both' ? 2 : 1;
     if (newPost.photos.length !== requiredPhotos) {
       const typeText = newPost.type === 'both' ? 'Ambos' : newPost.type === 'alert' ? 'Alerta' : 'Limpeza';
@@ -113,14 +109,12 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file
     const validationError = validateImageFile(file);
     if (validationError) {
       alert(validationError);
       return;
     }
 
-    // Compress and preview
     compressImage(file, { maxSizeKB: 400 })
       .then(compressedDataUrl => {
         setPhotoPreview(compressedDataUrl);
@@ -172,7 +166,6 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
     }
   };
 
-  // Keyboard navigation for photo modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!selectedPhoto) return;
@@ -206,25 +199,40 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
   }, [selectedPhoto]);
 
   return (
-    <div className="pinpoint-details">
-      <div className="pinpoint-header">
-        <div className="pinpoint-info">
-          <h3>📍 Detalhes do Ponto</h3>
-          <p className="pinpoint-coords">
-            {pinpoint.latitude.toFixed(6)}, {pinpoint.longitude.toFixed(6)}
-          </p>
-          <p className="pinpoint-date">
-            Criado: {new Date(pinpoint.createdAt).toLocaleDateString()}
-          </p>
+    <div className="bottom-sheet expanded">
+      {/* Handle bar */}
+      <div className="bottom-sheet-handle">
+        <div className="handle-bar"></div>
+      </div>
+
+      {/* Header */}
+      <div className="bottom-sheet-header">
+        <div className="header-content">
+          <div className="header-icon">📍</div>
+          <div className="header-text">
+            <h3>Detalhes do Ponto</h3>
+            <p>{pinpoint.latitude.toFixed(6)}, {pinpoint.longitude.toFixed(6)}</p>
+          </div>
         </div>
-        <div className="pinpoint-actions">
-          <button className="delete-btn" onClick={handleDelete} title="Excluir ponto">
-            🗑️
-          </button>
-          <button className="close-btn" onClick={onClose} title="Fechar">
-            ✕
-          </button>
-        </div>
+        <button className="close-btn" onClick={onClose} title="Fechar">
+          ✕
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="bottom-sheet-content">
+        <div className="pinpoint-details">
+          <div className="pinpoint-header">
+            <div className="pinpoint-info">
+              <p className="pinpoint-date">
+                Criado: {new Date(pinpoint.createdAt).toLocaleDateString()}
+              </p>
+            </div>
+            <div className="pinpoint-actions">
+              <button className="delete-btn" onClick={handleDelete} title="Excluir ponto">
+                🗑️
+              </button>
+            </div>
       </div>
 
       <div className="posts-section">
@@ -265,7 +273,6 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
               value={newPost.text}
               onChange={(e) => setNewPost({ ...newPost, text: e.target.value })}
             />
-            {/* Photos section */}
             <div className="form-group">
               <label>
                 Fotos (obrigatório) - {newPost.type === 'both' ? '2 fotos necessárias' : '1 foto necessária'}
@@ -324,7 +331,6 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
               )}
               {isAddingPhoto && (
                 <div className="photo-uploader" style={{ marginTop: 8 }}>
-                  {/* Method selector */}
                   <div style={{ marginBottom: 8 }}>
                     <button
                       type="button"
@@ -394,7 +400,7 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
                             style={{ maxWidth: '100%', maxHeight: 160, borderRadius: 12, border: '1px solid #e2e8f0' }}
                             onError={(e) => {
                               e.currentTarget.style.display = 'none';
-                              e.currentTarget.nextElementSibling!.textContent = 'Invalid image URL';
+                              (e.currentTarget.nextElementSibling as HTMLElement).textContent = 'Invalid image URL';
                             }}
                           />
                           <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}></div>
@@ -461,7 +467,6 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
               
               return (
               <div key={post.id} className="post-item">
-                {/* Photos at the top, full width */}
                 {post.photos && post.photos.length > 0 && (
                   <div className={`post-photos ${photoClass}`}>
                     {post.photos.map((photo, idx) => (
@@ -469,11 +474,11 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
                         <img
                           src={photo.url}
                           alt={`Post photo ${idx + 1}`}
-                          onClick={() => setSelectedPhoto({ url: photo.url, index: idx, photos: post.photos })}
+                          onClick={() => setSelectedPhoto({ url: photo.url, index: idx, photos: post.photos! })}
                         />
-                        {post.photos.length > 1 && (
+                        {post.photos!.length > 1 && (
                           <div className="photo-counter">
-                            {idx + 1}/{post.photos.length}
+                            {idx + 1}/{post.photos!.length}
                           </div>
                         )}
                       </div>
@@ -481,7 +486,6 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
                   </div>
                 )}
                 
-                {/* Post content below photos */}
                 <div className="post-content">
                   <div className="post-header">
                     <span 
@@ -503,7 +507,6 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
         </div>
       </div>
 
-      {/* Photo Modal */}
       {selectedPhoto && (
         <div 
           className="photo-modal-overlay" 
@@ -527,7 +530,6 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
             style={{ position: 'relative', maxWidth: '90vw', maxHeight: '90vh' }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close button */}
             <button
               onClick={() => setSelectedPhoto(null)}
               style={{
@@ -549,7 +551,6 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
               title="Close"
             >×</button>
 
-            {/* Navigation arrows */}
             {selectedPhoto.photos.length > 1 && (
               <>
                 <button
@@ -610,7 +611,6 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
               </>
             )}
 
-            {/* Main image */}
             <img
               src={selectedPhoto.url}
               alt={`Photo ${selectedPhoto.index + 1} of ${selectedPhoto.photos.length}`}
@@ -623,7 +623,6 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
               }}
             />
 
-            {/* Photo counter */}
             {selectedPhoto.photos.length > 1 && (
               <div
                 style={{
@@ -644,6 +643,7 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
           </div>
         </div>
       )}
+        </div>
     </div>
   );
 };

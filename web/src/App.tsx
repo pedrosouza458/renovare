@@ -203,7 +203,10 @@ function App() {
         isOpen={isPinpointsPanelOpen}
         onToggle={togglePinpointsPanel}
         onPinpointClick={handlePinpointClick}
-        onClosePinpointDetails={() => setSelectedPinpoint(null)}
+        onClosePinpointDetails={() => {
+          setSelectedPinpoint(null);
+          setIsPinpointsPanelOpen(false);
+        }}
         onAddPost={addPostToPinpoint}
         onDeletePinpoint={deletePinpoint}
         userLocation={currentLocation}

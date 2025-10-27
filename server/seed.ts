@@ -24,7 +24,7 @@ async function main() {
       email: "teste@gmail.com",
       cpf: "295.640.670-14", // Valid CPF for testing
       password: testPassword, // Properly hashed password: "test123"
-      points: 150,
+      points: 0,
     },
   });
 

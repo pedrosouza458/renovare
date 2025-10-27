@@ -90,7 +90,8 @@
 /* Bottom sheet content */
 .bottom-sheet-content {
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .rivers-list {
