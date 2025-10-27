@@ -1,5 +1,4 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { prisma } from "../../lib/prisma";
 import { createPin } from "./use-cases/create-pin";
 import { getPins } from "./use-cases/get-pins";
 import { getPinById } from "./use-cases/get-pin-by-id";
@@ -10,6 +9,7 @@ import {
   pinResponseSchema,
   updatePinBodySchema,
 } from "./pins.schemas";
+import { prisma } from "../../lib/prisma";
 
 export async function listPinsHandler(
   request: FastifyRequest,

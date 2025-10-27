@@ -1,5 +1,4 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { prisma } from "../../lib/prisma";
 import { createPost } from "./use-cases/create-post";
 import { getPosts } from "./use-cases/get-posts";
 import { getPostById } from "./use-cases/get-post-by-id";
@@ -10,6 +9,7 @@ import {
   postResponseSchema,
   updatePostBodySchema,
 } from "./posts.schemas";
+import { prisma } from "../../lib/prisma";
 
 export async function listPostsHandler(
   request: FastifyRequest,

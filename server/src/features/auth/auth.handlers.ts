@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { prisma } from "../../lib/prisma";
 import { loginUser } from "./use-cases/login-user";
 import { getProfile } from "./use-cases/get-profile";
+import { prisma } from "../../lib/prisma";
 
 export async function loginHandler(
   request: FastifyRequest,
