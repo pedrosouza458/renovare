@@ -16,7 +16,9 @@ export async function listPostsHandler(
   reply: FastifyReply
 ) {
   try {
-    const posts = await getPosts(prisma);
+    const anyReq: any = request;
+    const type = anyReq.query?.type as string | undefined;
+    const posts = await getPosts(prisma, type as any);
     const validated = posts.map((p) => postResponseSchema.parse(p));
     return reply.status(200).send(validated);
   } catch (err) {
