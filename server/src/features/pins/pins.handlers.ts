@@ -16,7 +16,9 @@ export async function listPinsHandler(
   reply: FastifyReply
 ) {
   try {
-    const pins = await getPins(prisma);
+    const anyReq: any = request;
+    const lastActionSummary = anyReq.query?.lastActionSummary as string | undefined;
+    const pins = await getPins(prisma, lastActionSummary);
     const validated = pins.map((p) => pinResponseSchema.parse(p));
     return reply.status(200).send(validated);
   } catch (err) {

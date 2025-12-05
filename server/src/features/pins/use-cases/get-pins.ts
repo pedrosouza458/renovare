@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 
-export async function getPins(prisma: PrismaClient) {
+export async function getPins(prisma: PrismaClient, lastActionSummary?: string) {
   const pins = await prisma.pins.findMany({
+    where: lastActionSummary ? { lastActionSummary } : undefined,
     include: {
       posts: {
         include: { photos: true },
@@ -13,3 +14,4 @@ export async function getPins(prisma: PrismaClient) {
 
   return pins;
 }
+
