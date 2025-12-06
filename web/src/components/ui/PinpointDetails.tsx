@@ -60,6 +60,7 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
 }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [filterType, setFilterType] = useState<PostType | "all">("all");
   const [newPost, setNewPost] = useState({
     type: "alert" as PostType,
     text: "",
@@ -76,6 +77,10 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
     index: number;
     photos: PostPhoto[];
   } | null>(null);
+
+  const filteredPosts = filterType === "all" 
+    ? pinpoint.posts 
+    : pinpoint.posts?.filter(post => post.type === filterType);
 
   // Check if cleaning posts are allowed
   const hasAlertOrBoth =
@@ -596,13 +601,36 @@ export const PinpointDetails: React.FC<PinpointDetailsProps> = ({
           </div>
         )}
 
+        <div className="posts-filter" style={{ marginBottom: 16, display: "flex", gap: 8, alignItems: "center" }}>
+          <label style={{ fontSize: 14, fontWeight: 500, color: "#374151" }}>Filtrar por tipo:</label>
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value as PostType | "all")}
+            style={{
+              padding: "6px 12px",
+              borderRadius: 6,
+              border: "1px solid #e2e8f0",
+              fontSize: 14,
+              cursor: "pointer",
+              backgroundColor: "white",
+            }}
+          >
+            <option value="all">Todos os tipos</option>
+            <option value="alert">⚠️ Alerta</option>
+            <option value="cleaning">🧹 Limpeza</option>
+            <option value="both">🔄 Ambos</option>
+          </select>
+        </div>
+
         <div className="posts-list">
-          {!pinpoint.posts || pinpoint.posts.length === 0 ? (
+          {!filteredPosts || filteredPosts.length === 0 ? (
             <p className="no-posts">
-              Nenhuma postagem ainda. Adicione a primeira!
+              {filterType === "all" 
+                ? "Nenhuma postagem ainda. Adicione a primeira!" 
+                : `Nenhuma postagem de ${getPostTypeText(filterType as PostType)}.`}
             </p>
           ) : (
-            pinpoint.posts.map((post) => {
+            filteredPosts.map((post) => {
               const photoClass =
                 post.photos && post.photos.length === 1
                   ? "single-photo"
